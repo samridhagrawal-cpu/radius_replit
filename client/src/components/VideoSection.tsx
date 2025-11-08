@@ -47,11 +47,6 @@ export default function VideoSection() {
 
           {/* Video Stats/Info Below */}
           <div className="flex flex-wrap justify-center items-center gap-6 md:gap-8 mt-6 text-xs md:text-sm text-muted-foreground">
-            <div className="flex items-center gap-2" data-testid="stat-real-results">
-              <Target className="w-4 h-4" />
-              <span className="font-medium">Real results</span>
-            </div>
-            <div className="w-px h-4 bg-border hidden sm:block" />
             <div className="flex items-center gap-2" data-testid="stat-no-fluff">
               <Sparkles className="w-4 h-4" />
               <span className="font-medium">No fluff</span>
