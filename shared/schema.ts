@@ -118,6 +118,32 @@ export const strategicBetSchema = z.object({
   expected_outcome: z.string(),
 });
 
+export const scrapingQualitySchema = z.object({
+  severity: z.enum(['severe', 'limited', 'warning', 'optimal']),
+  reason: z.string(),
+  recommendation: z.string(),
+  technicalDetails: z.object({
+    contentLength: z.number(),
+    hasTitle: z.boolean(),
+    headingCount: z.number(),
+    estimatedJSCoverage: z.number(),
+  }),
+  suggestions: z.array(z.string()),
+});
+
+export const analysisErrorSchema = z.object({
+  type: z.literal('JAVASCRIPT_HEAVY_SITE'),
+  severity: z.enum(['severe']),
+  message: z.string(),
+  technicalDetails: z.object({
+    contentLength: z.number(),
+    hasTitle: z.boolean(),
+    headingCount: z.number(),
+    estimatedJSCoverage: z.number(),
+  }),
+  suggestions: z.array(z.string()),
+});
+
 export const platformScoreDetailSchema = z.object({
   platform: z.string(),
   aic_score: z.number().min(0).max(10),
@@ -182,6 +208,9 @@ export const analysisResultSchema = z.object({
   accuracyChecks: z.array(accuracyCheckSchema).optional(),
   quickWins: z.array(quickWinSchema).optional(),
   strategicBets: z.array(strategicBetSchema).optional(),
+  // Error handling
+  error: analysisErrorSchema.optional(),
+  qualityWarning: scrapingQualitySchema.optional(),
 });
 
 export type AnalysisResult = z.infer<typeof analysisResultSchema>;
@@ -191,3 +220,5 @@ export type AccuracyCheck = z.infer<typeof accuracyCheckSchema>;
 export type QuickWin = z.infer<typeof quickWinSchema>;
 export type StrategicBet = z.infer<typeof strategicBetSchema>;
 export type PlatformScoreDetail = z.infer<typeof platformScoreDetailSchema>;
+export type ScrapingQuality = z.infer<typeof scrapingQualitySchema>;
+export type AnalysisError = z.infer<typeof analysisErrorSchema>;

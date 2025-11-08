@@ -10,6 +10,19 @@ interface BrandInfo {
   description: string;
 }
 
+interface ScrapingQuality {
+  severity: 'severe' | 'limited' | 'warning' | 'optimal';
+  reason: string;
+  recommendation: string;
+  technicalDetails: {
+    contentLength: number;
+    hasTitle: boolean;
+    headingCount: number;
+    estimatedJSCoverage: number;
+  };
+  suggestions: string[];
+}
+
 function sanitizeWebsiteInfo(raw: WebsiteInfo): WebsiteInfo {
   return {
     url: typeof raw.url === 'string' ? raw.url : '',
@@ -27,6 +40,91 @@ function sanitizeWebsiteInfo(raw: WebsiteInfo): WebsiteInfo {
     hasComparisons: Boolean(raw.hasComparisons),
     hasDocumentation: Boolean(raw.hasDocumentation),
     hasUseCases: Boolean(raw.hasUseCases),
+    htmlSize: typeof raw.htmlSize === 'number' ? raw.htmlSize : 0,
+  };
+}
+
+function assessScrapingQuality(websiteInfo: WebsiteInfo, htmlSize: number): ScrapingQuality {
+  const contentLength = websiteInfo.textContent.length;
+  const hasTitle = websiteInfo.title !== 'Untitled' && websiteInfo.title.length > 0;
+  const headingCount = websiteInfo.headings.length;
+  const textToHtmlRatio = htmlSize > 0 ? (contentLength / htmlSize) * 100 : 0;
+  
+  // Calculate estimated JS coverage
+  const estimatedJSCoverage = Math.max(0, Math.min(100 - (textToHtmlRatio * 10), 100));
+  
+  // SEVERE: Cannot properly analyze (<200 chars or no structure)
+  if (contentLength < 200 || (headingCount === 0 && !hasTitle)) {
+    return {
+      severity: 'severe',
+      reason: 'javascript-heavy-site',
+      recommendation: 'This website appears to be heavily dependent on JavaScript for content rendering. Our static analysis cannot capture dynamically loaded content.',
+      technicalDetails: {
+        contentLength,
+        hasTitle,
+        headingCount,
+        estimatedJSCoverage,
+      },
+      suggestions: [
+        'Ensure your website has static HTML content for better SEO',
+        'Consider server-side rendering (SSR) or static site generation (SSG)',
+        'Add meta tags and structured data that don\'t require JavaScript',
+        'Try our analysis again after implementing SEO improvements',
+      ],
+    };
+  }
+  
+  // LIMITED: Can analyze but results incomplete (200-500 chars or <3 headings)
+  if (contentLength < 500 || headingCount < 3) {
+    return {
+      severity: 'limited',
+      reason: 'partial-javascript-dependency',
+      recommendation: 'This website uses JavaScript to render some content. Analysis results may be incomplete.',
+      technicalDetails: {
+        contentLength,
+        hasTitle,
+        headingCount,
+        estimatedJSCoverage,
+      },
+      suggestions: [
+        'Some dynamic content may not be captured in this analysis',
+        'Consider adding more static HTML content for better search visibility',
+        'Results shown are based on available static content only',
+      ],
+    };
+  }
+  
+  // WARNING: JS detected but sufficient content
+  if (textToHtmlRatio < 10 || estimatedJSCoverage > 60) {
+    return {
+      severity: 'warning',
+      reason: 'moderate-javascript-usage',
+      recommendation: 'This website uses JavaScript for enhanced features. Some dynamic content may not be captured.',
+      technicalDetails: {
+        contentLength,
+        hasTitle,
+        headingCount,
+        estimatedJSCoverage,
+      },
+      suggestions: [
+        'Analysis covers static content successfully',
+        'Dynamic features may not be fully represented',
+      ],
+    };
+  }
+  
+  // OPTIMAL: Static content sufficient
+  return {
+    severity: 'optimal',
+    reason: 'sufficient-static-content',
+    recommendation: '',
+    technicalDetails: {
+      contentLength,
+      hasTitle,
+      headingCount,
+      estimatedJSCoverage,
+    },
+    suggestions: [],
   };
 }
 
@@ -38,60 +136,97 @@ export async function analyzeWebsite(url: string): Promise<AnalysisResult> {
   const rawWebsiteInfo = await scrapeWebsite(url);
   const websiteInfo = sanitizeWebsiteInfo(rawWebsiteInfo);
 
-  // Step 2: Extract brand info using GPT
+  // Step 2: Assess scraping quality immediately to avoid wasted API calls
+  const scrapingQuality = assessScrapingQuality(websiteInfo, websiteInfo.htmlSize);
+  console.log(`Scraping quality assessment: ${scrapingQuality.severity}`, {
+    contentLength: scrapingQuality.technicalDetails.contentLength,
+    hasTitle: scrapingQuality.technicalDetails.hasTitle,
+    headingCount: scrapingQuality.technicalDetails.headingCount,
+    estimatedJSCoverage: scrapingQuality.technicalDetails.estimatedJSCoverage,
+  });
+
+  // For SEVERE cases, return early with error to avoid expensive GPT calls
+  if (scrapingQuality.severity === 'severe') {
+    console.log('SEVERE scraping quality detected - returning error response');
+    return {
+      url,
+      brandInfo: {
+        name: websiteInfo.url.replace(/^https?:\/\/(www\.)?/, '').split('/')[0],
+        domain: websiteInfo.url,
+        industry: 'Unknown',
+        description: 'Unable to analyze JavaScript-heavy website',
+      },
+      overallScore: 0,
+      platformScores: [],
+      dimensionScores: [],
+      competitors: [],
+      gaps: [],
+      recommendations: [],
+      error: {
+        type: 'JAVASCRIPT_HEAVY_SITE',
+        severity: 'severe',
+        message: scrapingQuality.recommendation,
+        technicalDetails: scrapingQuality.technicalDetails,
+        suggestions: scrapingQuality.suggestions,
+      },
+    };
+  }
+
+  // Step 3: Extract brand info using GPT
   console.log('Extracting brand information...');
   const brandInfo = await extractBrandInfo(websiteInfo);
 
-  // Step 3: Discover competitors using GPT
+  // Step 4: Discover competitors using GPT
   console.log('Discovering competitors...');
   const competitors = await discoverCompetitors(brandInfo, websiteInfo);
 
-  // Step 4: Analyze visibility across platforms
+  // Step 5: Analyze visibility across platforms
   console.log('Analyzing AI platform visibility...');
   const platformScores = await analyzePlatformVisibility(brandInfo, websiteInfo);
 
-  // Step 5: Calculate dimension scores
+  // Step 6: Calculate dimension scores
   console.log('Calculating dimension scores...');
   const dimensionScores = await calculateDimensionScores(websiteInfo, brandInfo);
 
-  // Step 6: Detect gaps
+  // Step 7: Detect gaps
   console.log('Detecting content gaps...');
   const gaps = detectGaps(websiteInfo);
 
-  // Step 7: Generate recommendations
+  // Step 8: Generate recommendations
   console.log('Generating recommendations...');
   const recommendations = await generateRecommendations(websiteInfo, brandInfo, gaps, platformScores);
 
-  // Step 8: Calculate overall score
+  // Step 9: Calculate overall score
   const overallScore = calculateOverallScore(platformScores, dimensionScores);
 
-  // Step 9: Calculate GEO metrics
+  // Step 10: Calculate GEO metrics
   console.log('Calculating GEO metrics...');
   const geoMetrics = await calculateGEOMetrics(websiteInfo, brandInfo);
 
-  // Step 10: Generate competitor analysis
+  // Step 11: Generate competitor analysis
   console.log('Generating competitor analysis...');
   const competitorAnalysis = await generateCompetitorAnalysis(competitors, brandInfo, websiteInfo);
 
-  // Step 11: Generate platform score details
+  // Step 12: Generate platform score details
   console.log('Generating platform score details...');
   const platformScoreDetails = await generatePlatformScoreDetails(platformScores, websiteInfo, geoMetrics);
 
-  // Step 12: Perform accuracy checks
+  // Step 13: Perform accuracy checks
   console.log('Performing accuracy checks...');
   const accuracyChecks = await performAccuracyChecks(brandInfo, websiteInfo);
 
-  // Step 13: Generate quick wins
+  // Step 14: Generate quick wins
   console.log('Generating quick wins...');
   const quickWins = await generateQuickWins(websiteInfo, gaps);
 
-  // Step 14: Generate strategic bets
+  // Step 15: Generate strategic bets
   console.log('Generating strategic bets...');
   const strategicBets = await generateStrategicBets(websiteInfo, brandInfo);
 
   console.log(`Analysis complete! Overall score: ${overallScore}, GEO score: ${geoMetrics.overall}`);
 
-  return {
+  // Attach quality warning for LIMITED/WARNING cases
+  const result: AnalysisResult = {
     url,
     brandInfo,
     overallScore,
@@ -107,6 +242,13 @@ export async function analyzeWebsite(url: string): Promise<AnalysisResult> {
     quickWins,
     strategicBets,
   };
+
+  // Add quality warning if site has issues but was still analyzed
+  if (scrapingQuality.severity === 'limited' || scrapingQuality.severity === 'warning') {
+    result.qualityWarning = scrapingQuality;
+  }
+
+  return result;
 }
 
 async function extractBrandInfo(websiteInfo: WebsiteInfo): Promise<BrandInfo> {

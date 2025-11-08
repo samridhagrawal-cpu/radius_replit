@@ -18,6 +18,7 @@ export interface WebsiteInfo {
   hasUseCases: boolean;
   hasDocumentation: boolean;
   metaTags: Record<string, string>;
+  htmlSize: number;
 }
 
 export async function scrapeWebsite(url: string): Promise<WebsiteInfo> {
@@ -155,6 +156,7 @@ export async function scrapeWebsite(url: string): Promise<WebsiteInfo> {
       hasUseCases,
       hasDocumentation,
       metaTags,
+      htmlSize: html.length,
     };
   } catch (error) {
     console.error('Scraping error:', error);

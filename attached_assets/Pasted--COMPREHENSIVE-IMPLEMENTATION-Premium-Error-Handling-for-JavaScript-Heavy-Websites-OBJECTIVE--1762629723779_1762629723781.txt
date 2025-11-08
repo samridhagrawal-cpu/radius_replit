@@ -1,0 +1,873 @@
+
+🎯 COMPREHENSIVE IMPLEMENTATION: Premium Error Handling for JavaScript-Heavy Websites
+📋 OBJECTIVE
+Implement an elegant, informative error handling system that detects JavaScript-heavy or unscrapable websites during analysis and displays a premium, minimal error modal that educates users while maintaining GeoPulse's sophisticated design language.
+
+🔍 PROBLEM ANALYSIS
+Current Situation:
+polariscampus.com Analysis Results:
+- HTML Retrieved: 9KB ✓
+- Title Tag: NONE ✗
+- Heading Tags: 0 ✗
+- Visible Text: 155 characters ✗
+- Result: Fallback scores (AIC: 2, CES: 1.5, MTS: 1.5)
+
+Detection Criteria for JavaScript-Heavy Sites:
+Minimal Static Content: < 500 characters of text
+Missing Metadata: No title tag or meta descriptions
+No Structural Elements: 0 heading tags (h1-h6)
+Low HTML-to-Text Ratio: < 5%
+Common JS Framework Patterns: Presence of React/Vue/Angular root divs with empty content
+
+💎 SOLUTION ARCHITECTURE
+Three-Tier Error Response System:
+Tier 1: SEVERE (Cannot Analyze)
+→ JavaScript-heavy site with <200 chars content
+→ Show premium error modal + suggest alternatives
+
+Tier 2: LIMITED (Partial Analysis)
+→ JavaScript-dependent but some content (200-500 chars)
+→ Show warning banner + provide limited results
+
+Tier 3: WARNING (Suboptimal)
+→ Site works but JS-dependent features missed
+→ Show info banner + full results
+
+
+🎨 IMPLEMENTATION REQUIREMENTS
+Phase 1: Backend Detection Logic
+File: server/services/analyzer.ts
+Add comprehensive detection before returning results:
+// After scraping, before GEO calculation
+interface ScrapingQuality {
+  severity: 'severe' | 'limited' | 'warning' | 'optimal';
+  reason: string;
+  recommendation: string;
+  technicalDetails: {
+    contentLength: number;
+    hasTitle: boolean;
+    headingCount: number;
+    estimatedJSCoverage: number;
+  };
+}
+
+const assessScrapingQuality = (scrapedData: ScrapedContent): ScrapingQuality => {
+  const { title, headings, textContent, htmlSize } = scrapedData;
+  
+  const contentLength = textContent.length;
+  const hasTitle = title && title.length > 0;
+  const headingCount = headings.length;
+  const textToHtmlRatio = (contentLength / htmlSize) * 100;
+  
+  // Calculate estimated JS coverage
+  const estimatedJSCoverage = 100 - Math.min(textToHtmlRatio * 10, 100);
+  
+  // SEVERE: Cannot properly analyze
+  if (contentLength < 200 || (headingCount === 0 && !hasTitle)) {
+    return {
+      severity: 'severe',
+      reason: 'javascript-heavy-site',
+      recommendation: 'This website appears to be heavily dependent on JavaScript for content rendering. Our static analysis cannot capture dynamically loaded content.',
+      technicalDetails: {
+        contentLength,
+        hasTitle,
+        headingCount,
+        estimatedJSCoverage,
+      },
+    };
+  }
+  
+  // LIMITED: Can analyze but results incomplete
+  if (contentLength < 500 || headingCount < 3) {
+    return {
+      severity: 'limited',
+      reason: 'partial-javascript-dependency',
+      recommendation: 'This website uses JavaScript to render some content. Analysis results may be incomplete.',
+      technicalDetails: {
+        contentLength,
+        hasTitle,
+        headingCount,
+        estimatedJSCoverage,
+      },
+    };
+  }
+  
+  // WARNING: JS detected but sufficient content
+  if (textToHtmlRatio < 10 || estimatedJSCoverage > 60) {
+    return {
+      severity: 'warning',
+      reason: 'moderate-javascript-usage',
+      recommendation: 'This website uses JavaScript for enhanced features. Some dynamic content may not be captured.',
+      technicalDetails: {
+        contentLength,
+        hasTitle,
+        headingCount,
+        estimatedJSCoverage,
+      },
+    };
+  }
+  
+  // OPTIMAL: Static content sufficient
+  return {
+    severity: 'optimal',
+    reason: 'sufficient-static-content',
+    recommendation: '',
+    technicalDetails: {
+      contentLength,
+      hasTitle,
+      headingCount,
+      estimatedJSCoverage,
+    },
+  };
+};
+
+// In main analysis function
+export const analyzeWebsite = async (url: string): Promise<AnalysisResult> => {
+  try {
+    // ... existing scraping code ...
+    
+    const scrapedContent = await scrapeWebsite(url);
+    const quality = assessScrapingQuality(scrapedContent);
+    
+    // Log for debugging
+    console.log(`[Analysis Quality] ${url}:`, quality);
+    
+    // If SEVERE, return error response
+    if (quality.severity === 'severe') {
+      return {
+        success: false,
+        error: {
+          type: 'JAVASCRIPT_HEAVY_SITE',
+          severity: quality.severity,
+          message: quality.recommendation,
+          technicalDetails: quality.technicalDetails,
+          suggestions: [
+            'Ensure your website has static HTML content for SEO',
+            'Consider server-side rendering (SSR) or static site generation (SSG)',
+            'Add meta tags and structured data that don\'t require JavaScript',
+            'Try our analysis again after implementing SEO improvements',
+          ],
+          alternativeOptions: [
+            {
+              title: 'Manual Content Submission',
+              description: 'Provide key information about your site manually',
+              action: 'manual-submission',
+            },
+            {
+              title: 'Request Custom Analysis',
+              description: 'Contact us for JavaScript-enabled deep analysis',
+              action: 'contact-support',
+            },
+          ],
+        },
+      };
+    }
+    
+    // Continue with analysis for LIMITED/WARNING/OPTIMAL
+    const geoScores = calculateGEOScores(scrapedContent);
+    
+    return {
+      success: true,
+      data: {
+        ...analysisResults,
+        qualityWarning: quality.severity !== 'optimal' ? quality : null,
+      },
+    };
+    
+  } catch (error) {
+    // ... existing error handling ...
+  }
+};
+
+
+Phase 2: Frontend Error Modal Component
+File: components/JavaScriptHeavyErrorModal.tsx
+import React from 'react';
+
+interface ErrorDetails {
+  type: 'JAVASCRIPT_HEAVY_SITE';
+  severity: 'severe' | 'limited' | 'warning';
+  message: string;
+  technicalDetails: {
+    contentLength: number;
+    hasTitle: boolean;
+    headingCount: number;
+    estimatedJSCoverage: number;
+  };
+  suggestions: string[];
+  alternativeOptions: Array<{
+    title: string;
+    description: string;
+    action: string;
+  }>;
+}
+
+interface Props {
+  isOpen: boolean;
+  onClose: () => void;
+  url: string;
+  errorDetails: ErrorDetails;
+  onRetry?: () => void;
+  onContactSupport?: () => void;
+}
+
+export const JavaScriptHeavyErrorModal: React.FC<Props> = ({
+  isOpen,
+  onClose,
+  url,
+  errorDetails,
+  onRetry,
+  onContactSupport,
+}) => {
+  if (!isOpen) return null;
+
+  const { technicalDetails, suggestions, alternativeOptions } = errorDetails;
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 animate-fadeIn"
+        onClick={onClose}
+      />
+
+      {/* Modal */}
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+        <div
+          className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full pointer-events-auto animate-slideUp overflow-hidden"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header with Gradient */}
+          <div className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-black p-8 pb-12">
+            {/* Close Button */}
+            <button
+              onClick={onClose}
+              className="absolute top-4 right-4 text-white/60 hover:text-white transition-colors"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            {/* Icon */}
+            <div className="flex items-center justify-center mb-6">
+              <div className="w-20 h-20 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20">
+                <span className="text-5xl">⚠️</span>
+              </div>
+            </div>
+
+            {/* Title */}
+            <h2 className="text-3xl font-bold text-white text-center mb-3">
+              Analysis Unavailable
+            </h2>
+            <p className="text-white/80 text-center text-lg">
+              We couldn't analyze this JavaScript-heavy website
+            </p>
+          </div>
+
+          {/* Content */}
+          <div className="p-8">
+            {/* URL Display */}
+            <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                Attempted URL
+              </div>
+              <div className="font-mono text-sm text-gray-900 break-all">
+                {url}
+              </div>
+            </div>
+
+            {/* Problem Explanation */}
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <span className="text-2xl">🔍</span>
+                What Happened?
+              </h3>
+              <p className="text-gray-700 leading-relaxed">
+                {errorDetails.message} Our analyzer relies on static HTML content, 
+                but your website appears to load most of its content dynamically 
+                using JavaScript frameworks (like React, Vue, or Angular).
+              </p>
+            </div>
+
+            {/* Technical Details */}
+            <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <div className="text-sm font-semibold text-gray-700 mb-3">
+                Technical Analysis
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <div className="text-xs text-gray-500 mb-1">Static Content</div>
+                  <div className={`text-sm font-semibold ${
+                    technicalDetails.contentLength < 200 ? 'text-red-600' : 
+                    technicalDetails.contentLength < 500 ? 'text-yellow-600' : 
+                    'text-green-600'
+                  }`}>
+                    {technicalDetails.contentLength} characters
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-gray-500 mb-1">Heading Tags</div>
+                  <div className={`text-sm font-semibold ${
+                    technicalDetails.headingCount === 0 ? 'text-red-600' : 
+                    technicalDetails.headingCount < 3 ? 'text-yellow-600' : 
+                    'text-green-600'
+                  }`}>
+                    {technicalDetails.headingCount} found
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-gray-500 mb-1">Page Title</div>
+                  <div className={`text-sm font-semibold ${
+                    technicalDetails.hasTitle ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                    {technicalDetails.hasTitle ? 'Present ✓' : 'Missing ✗'}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-gray-500 mb-1">Est. JS Coverage</div>
+                  <div className={`text-sm font-semibold ${
+                    technicalDetails.estimatedJSCoverage > 80 ? 'text-red-600' : 
+                    technicalDetails.estimatedJSCoverage > 60 ? 'text-yellow-600' : 
+                    'text-green-600'
+                  }`}>
+                    ~{Math.round(technicalDetails.estimatedJSCoverage)}%
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Recommendations */}
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <span className="text-2xl">💡</span>
+                How to Fix This
+              </h3>
+              <div className="space-y-2">
+                {suggestions.map((suggestion, index) => (
+                  <div key={index} className="flex items-start gap-3 text-sm text-gray-700">
+                    <span className="text-gray-400 mt-0.5">•</span>
+                    <span>{suggestion}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Alternative Options */}
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                What You Can Do Now
+              </h3>
+              <div className="space-y-3">
+                {alternativeOptions.map((option, index) => (
+                  <button
+                    key={index}
+                    onClick={() => {
+                      if (option.action === 'contact-support') {
+                        onContactSupport?.();
+                      }
+                    }}
+                    className="w-full flex items-start gap-4 p-4 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg transition-all text-left group"
+                  >
+                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center flex-shrink-0 border border-gray-200 group-hover:border-gray-300 transition-colors">
+                      <span className="text-xl">
+                        {option.action === 'manual-submission' ? '📝' : '💬'}
+                      </span>
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-semibold text-gray-900 mb-1">
+                        {option.title}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        {option.description}
+                      </div>
+                    </div>
+                    <svg 
+                      className="w-5 h-5 text-gray-400 group-hover:text-gray-600 flex-shrink-0 mt-1 transition-colors" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3">
+              <button
+                onClick={onRetry}
+                className="flex-1 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-lg font-semibold transition-colors"
+              >
+                Try Different URL
+              </button>
+              <button
+                onClick={onClose}
+                className="flex-1 px-6 py-3 bg-black hover:bg-gray-800 text-white rounded-lg font-semibold transition-colors"
+              >
+                Got It
+              </button>
+            </div>
+          </div>
+
+          {/* Footer Tip */}
+          <div className="px-8 pb-6">
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-start gap-3">
+                <span className="text-xl flex-shrink-0">ℹ️</span>
+                <div className="text-sm text-blue-900">
+                  <span className="font-semibold">Pro Tip:</span> Websites with good 
+                  SEO practices have static HTML content that both search engines 
+                  and AI platforms can easily understand. Consider implementing 
+                  server-side rendering (SSR) for better visibility.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
+
+
+Phase 3: Warning Banner for Partial Analysis
+File: components/PartialAnalysisWarning.tsx
+import React, { useState } from 'react';
+
+interface Props {
+  severity: 'limited' | 'warning';
+  message: string;
+  technicalDetails: {
+    contentLength: number;
+    estimatedJSCoverage: number;
+  };
+  onDismiss?: () => void;
+}
+
+export const PartialAnalysisWarning: React.FC<Props> = ({
+  severity,
+  message,
+  technicalDetails,
+  onDismiss,
+}) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isDismissed, setIsDismissed] = useState(false);
+
+  if (isDismissed) return null;
+
+  const severityConfig = {
+    limited: {
+      bgColor: 'bg-yellow-50',
+      borderColor: 'border-yellow-200',
+      iconColor: 'text-yellow-600',
+      textColor: 'text-yellow-900',
+      icon: '⚠️',
+      title: 'Partial Analysis Results',
+    },
+    warning: {
+      bgColor: 'bg-blue-50',
+      borderColor: 'border-blue-200',
+      iconColor: 'text-blue-600',
+      textColor: 'text-blue-900',
+      icon: 'ℹ️',
+      title: 'Analysis Note',
+    },
+  };
+
+  const config = severityConfig[severity];
+
+  return (
+    <div className={`${config.bgColor} ${config.borderColor} border rounded-xl p-6 mb-6 animate-slideDown`}>
+      <div className="flex items-start gap-4">
+        {/* Icon */}
+        <div className="flex-shrink-0 text-3xl">
+          {config.icon}
+        </div>
+
+        {/* Content */}
+        <div className="flex-1">
+          {/* Header */}
+          <div className="flex items-start justify-between mb-2">
+            <div>
+              <h3 className={`text-lg font-semibold ${config.textColor}`}>
+                {config.title}
+              </h3>
+              <p className={`text-sm ${config.textColor} mt-1 opacity-90`}>
+                {message}
+              </p>
+            </div>
+            
+            {/* Dismiss Button */}
+            {onDismiss && (
+              <button
+                onClick={() => setIsDismissed(true)}
+                className={`${config.iconColor} hover:opacity-70 transition-opacity ml-4`}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
+
+          {/* Technical Details (Collapsible) */}
+          {isExpanded && (
+            <div className="mt-4 pt-4 border-t border-current/10 animate-slideDown">
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <div className="text-xs font-semibold opacity-70 mb-1">
+                    Static Content Captured
+                  </div>
+                  <div className="text-sm font-semibold">
+                    {technicalDetails.contentLength} characters
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs font-semibold opacity-70 mb-1">
+                    Est. JavaScript Coverage
+                  </div>
+                  <div className="text-sm font-semibold">
+                    ~{Math.round(technicalDetails.estimatedJSCoverage)}%
+                  </div>
+                </div>
+              </div>
+              <div className="text-sm opacity-80">
+                <strong>Note:</strong> Dynamic content loaded via JavaScript may not be 
+                reflected in this analysis. For best results, ensure critical content 
+                is available in static HTML.
+              </div>
+            </div>
+          )}
+
+          {/* Expand/Collapse Button */}
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className={`mt-3 text-sm font-medium ${config.iconColor} hover:opacity-70 transition-opacity flex items-center gap-2`}
+          >
+            {isExpanded ? 'Show Less' : 'Show Technical Details'}
+            <svg 
+              className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
+Phase 4: Integration into Analysis Flow
+File: pages/AnalysisPage.tsx or similar
+import React, { useState } from 'react';
+import { JavaScriptHeavyErrorModal } from './components/JavaScriptHeavyErrorModal';
+import { PartialAnalysisWarning } from './components/PartialAnalysisWarning';
+
+export const AnalysisPage: React.FC = () => {
+  const [analysisError, setAnalysisError] = useState<any>(null);
+  const [qualityWarning, setQualityWarning] = useState<any>(null);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+
+  const handleAnalysis = async (url: string) => {
+    try {
+      const response = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url }),
+      });
+
+      const result = await response.json();
+
+      if (!result.success) {
+        // Handle JavaScript-heavy site error
+        if (result.error?.type === 'JAVASCRIPT_HEAVY_SITE') {
+          setAnalysisError(result.error);
+          setShowErrorModal(true);
+          return;
+        }
+        // Handle other errors
+        throw new Error(result.error?.message || 'Analysis failed');
+      }
+
+      // Check for quality warnings
+      if (result.data.qualityWarning) {
+        setQualityWarning(result.data.qualityWarning);
+      }
+
+      // Display results
+      displayAnalysisResults(result.data);
+
+    } catch (error) {
+      console.error('Analysis error:', error);
+      // Show generic error
+    }
+  };
+
+  return (
+    <div className="analysis-page">
+      {/* Quality Warning Banner */}
+      {qualityWarning && qualityWarning.severity !== 'optimal' && (
+        <PartialAnalysisWarning
+          severity={qualityWarning.severity}
+          message={qualityWarning.recommendation}
+          technicalDetails={qualityWarning.technicalDetails}
+          onDismiss={() => setQualityWarning(null)}
+        />
+      )}
+
+      {/* Analysis Results */}
+      {/* ... your existing results display ... */}
+
+      {/* JavaScript-Heavy Error Modal */}
+      {analysisError && (
+        <JavaScriptHeavyErrorModal
+          isOpen={showErrorModal}
+          onClose={() => {
+            setShowErrorModal(false);
+            setAnalysisError(null);
+          }}
+          url={analysisError.url || ''}
+          errorDetails={analysisError}
+          onRetry={() => {
+            setShowErrorModal(false);
+            setAnalysisError(null);
+            // Reset to input state
+          }}
+          onContactSupport={() => {
+            // Open contact form or redirect
+            window.open('/contact', '_blank');
+          }}
+        />
+      )}
+    </div>
+  );
+};
+
+
+🎨 REQUIRED CSS ANIMATIONS
+/* Fade in backdrop */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.2s ease-out forwards;
+}
+
+/* Slide up modal */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-slideUp {
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Slide down banner */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slideDown {
+  animation: slideDown 0.3s ease-out forwards;
+}
+
+
+📊 USER EXPERIENCE FLOW
+User enters URL: polariscampus.com
+         ↓
+Backend scrapes site
+         ↓
+Detection logic runs
+         ↓
+    Quality: SEVERE
+         ↓
+Return error response
+         ↓
+Frontend receives error
+         ↓
+Show premium modal
+         ↓
+User reads explanation
+         ↓
+Options presented:
+  1. Try different URL
+  2. Contact support
+  3. Manual submission
+         ↓
+User takes action
+
+
+✅ COMPREHENSIVE IMPLEMENTATION CHECKLIST
+Backend (30 mins)
+[ ] Create assessScrapingQuality function in analyzer.ts
+[ ] Add detection criteria (content length, headings, title)
+[ ] Calculate estimated JS coverage percentage
+[ ] Implement severity tiers (severe/limited/warning/optimal)
+[ ] Return structured error for SEVERE cases
+[ ] Include quality warning in successful responses
+[ ] Add comprehensive logging for debugging
+[ ] Test with multiple JavaScript-heavy sites
+Frontend - Error Modal (45 mins)
+[ ] Create JavaScriptHeavyErrorModal.tsx component
+[ ] Implement premium gradient header design
+[ ] Add animated backdrop with blur effect
+[ ] Display attempted URL prominently
+[ ] Show clear problem explanation
+[ ] Create technical details grid
+[ ] Add color-coded metrics (red/yellow/green)
+[ ] List actionable recommendations
+[ ] Implement alternative options cards
+[ ] Add smooth animations (fadeIn, slideUp)
+[ ] Test modal on mobile devices
+[ ] Ensure proper z-index layering
+Frontend - Warning Banner (30 mins)
+[ ] Create PartialAnalysisWarning.tsx component
+[ ] Implement collapsible technical details
+[ ] Add severity-based styling (limited/warning)
+[ ] Create dismissible functionality
+[ ] Add expand/collapse animation
+[ ] Test banner positioning in results page
+[ ] Verify mobile responsiveness
+Integration (20 mins)
+[ ] Update analysis API route to return new error format
+[ ] Integrate modal into AnalysisPage component
+[ ] Add state management for errors and warnings
+[ ] Connect "Try Different URL" button functionality
+[ ] Connect "Contact Support" button
+[ ] Test error flow end-to-end
+[ ] Verify warning flow for partial analysis
+Testing & QA (30 mins)
+[ ] Test with polariscampus.com (original issue)
+[ ] Test with other JS-heavy sites (React apps, Vue apps)
+[ ] Test with normal sites (should show no error)
+[ ] Test with sites that have partial JS dependency
+[ ] Verify modal displays correctly on all devices
+[ ] Test keyboard navigation (ESC to close)
+[ ] Test click-outside-to-close functionality
+[ ] Verify all animations are smooth
+[ ] Check color contrast for accessibility
+[ ] Test with slow network conditions
+
+🎯 EXAMPLE ERROR MESSAGES
+Severe Cases:
+"This website is heavily dependent on JavaScript for content rendering. 
+Our static analysis cannot capture dynamically loaded content, which means 
+we cannot provide accurate AI visibility metrics at this time."
+
+Limited Cases:
+"This website uses JavaScript to render some content. Our analysis has 
+captured the available static content, but some dynamically loaded elements 
+may be missing from the results."
+
+Warning Cases:
+"This website uses JavaScript for enhanced features. Most static content 
+has been analyzed successfully, but some dynamic elements may not be 
+reflected in the visibility scores."
+
+
+💡 PREMIUM UX ENHANCEMENTS
+1. Alternative: Waitlist for JS Analysis
+<button className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-all">
+  <div className="flex items-center justify-center gap-3">
+    <span className="text-2xl">🚀</span>
+    <div className="text-left">
+      <div className="font-semibold text-gray-900">
+        Beta: JavaScript-Enabled Analysis
+      </div>
+      <div className="text-sm text-gray-600">
+        Join waitlist for our advanced scraper
+      </div>
+    </div>
+  </div>
+</button>
+
+2. Educational Tooltip
+<div className="group relative inline-block">
+  <span className="cursor-help border-b border-dashed border-gray-400">
+    JavaScript-heavy
+  </span>
+  <div className="hidden group-hover:block absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 p-3 bg-gray-900 text-white text-xs rounded-lg">
+    Websites that use frameworks like React, Vue, or Angular to render 
+    content dynamically in the browser rather than serving it as static HTML.
+  </div>
+</div>
+
+3. Before/After Comparison
+<div className="grid grid-cols-2 gap-4">
+  <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+    <div className="text-xs font-semibold text-red-700 mb-2">
+      ✗ Current State
+    </div>
+    <div className="text-sm text-red-900">
+      Minimal static content, AI platforms can't understand your site
+    </div>
+  </div>
+  <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+    <div className="text-xs font-semibold text-green-700 mb-2">
+      ✓ With SSR/SSG
+    </div>
+    <div className="text-sm text-green-900">
+      Rich static content, optimal AI visibility and SEO performance
+    </div>
+  </div>
+</div>
+
+
+🚀 SUCCESS CRITERIA
+The implementation is successful when:
+✅ JavaScript-heavy sites are detected with 95%+ accuracy
+✅ Error modal appears within 1 second of detection
+✅ Modal is visually stunning and matches brand aesthetics
+✅ Users understand the problem immediately
+✅ Technical details are accessible but not overwhelming
+✅ Alternative options are clear and actionable
+✅ Warning banners are informative but non-intrusive
+✅ All animations are smooth (60fps)
+✅ Mobile experience is flawless
+✅ Users feel empowered, not frustrated
+
+📈 ANALYTICS TO TRACK
+// Track error encounters
+analytics.track('Analysis Error', {
+  errorType: 'JAVASCRIPT_HEAVY_SITE',
+  url: attemptedUrl,
+  severity: 'severe',
+  contentLength: technicalDetails.contentLength,
+  estimatedJSCoverage: technicalDetails.estimatedJSCoverage,
+});
+
+// Track user actions
+analytics.track('Error Modal Action', {
+  action: 'retry' | 'contact-support' | 'dismissed',
+  fromError: 'JAVASCRIPT_HEAVY_SITE',
+});
+
+
+

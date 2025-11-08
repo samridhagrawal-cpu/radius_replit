@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { TrendingUp, Target, Users, Zap } from "lucide-react";
 import StatsCard from "@/components/StatsCard";
 import PlatformComparison from "@/components/PlatformComparison";
@@ -15,6 +15,8 @@ import { AccuracyIndicator } from "@/components/AccuracyIndicator";
 import { OpenInAIButton } from "@/components/OpenInAIButton";
 import { PDFReport } from "@/components/PDFReport";
 import { BriefSection } from "@/components/BriefSection";
+import { JavaScriptHeavyErrorModal } from "@/components/JavaScriptHeavyErrorModal";
+import { QualityWarningBanner } from "@/components/QualityWarningBanner";
 import { METRIC_DEFINITIONS } from "@/lib/geo-constants";
 import type { AnalysisResult } from "@shared/schema";
 import type { ReportData } from "@/lib/geo-types";
@@ -43,11 +45,20 @@ interface AnalysisResultsProps {
 
 export default function AnalysisResults({ data }: AnalysisResultsProps) {
   const [activeTab, setActiveTab] = useState<Tab>("overview");
+  const [showErrorModal, setShowErrorModal] = useState(false);
 
   const { 
     brandInfo, overallScore, platformScores, dimensionScores, competitors, gaps, recommendations,
-    geoMetrics, competitorAnalysis, platformScoreDetails, accuracyChecks, quickWins, strategicBets
+    geoMetrics, competitorAnalysis, platformScoreDetails, accuracyChecks, quickWins, strategicBets,
+    error, qualityWarning
   } = data;
+
+  // Show error modal on mount if there's a severe error
+  useEffect(() => {
+    if (error) {
+      setShowErrorModal(true);
+    }
+  }, [error]);
 
   // Extract domain for use in components
   const domain = brandInfo.domain;
@@ -76,15 +87,26 @@ export default function AnalysisResults({ data }: AnalysisResultsProps) {
   } : null;
 
   return (
-    <main className="container mx-auto px-6 py-8 pt-28">
-      {/* Header with PDF Export */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold">Analysis Results</h1>
-          <p className="text-muted-foreground mt-2">Comprehensive AI visibility analysis for {domain}</p>
+    <>
+      {/* JavaScript Heavy Error Modal */}
+      {error && (
+        <JavaScriptHeavyErrorModal
+          isOpen={showErrorModal}
+          onClose={() => setShowErrorModal(false)}
+          url={data.url}
+          errorDetails={error}
+        />
+      )}
+
+      <main className="container mx-auto px-6 py-8 pt-28">
+        {/* Header with PDF Export */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold">Analysis Results</h1>
+            <p className="text-muted-foreground mt-2">Comprehensive AI visibility analysis for {domain}</p>
+          </div>
+          {pdfReportData && <PDFReport data={pdfReportData} />}
         </div>
-        {pdfReportData && <PDFReport data={pdfReportData} />}
-      </div>
       {/* Liquid Glass Tab Navigation */}
       <div className="mb-12">
         <div className="flex items-center justify-between gap-2 p-1.5 bg-card/90 backdrop-blur-xl border border-border rounded-full shadow-lg overflow-x-auto">
@@ -141,6 +163,9 @@ export default function AnalysisResults({ data }: AnalysisResultsProps) {
       {/* Tab Content */}
       {activeTab === "overview" && (
         <div className="space-y-8" data-testid="content-overview">
+          {/* Quality Warning Banner */}
+          {qualityWarning && <QualityWarningBanner qualityWarning={qualityWarning} />}
+          
           {/* GEO Metrics */}
           {geoMetrics && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -330,5 +355,6 @@ export default function AnalysisResults({ data }: AnalysisResultsProps) {
         </div>
       )}
     </main>
+    </>
   );
 }
