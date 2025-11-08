@@ -2,7 +2,7 @@
 
 export default function VideoSection() {
   return (
-    <section className="w-full bg-background py-16 md:py-24 pt-[0px] pb-[0px]" data-testid="section-video">
+    <section className="w-full bg-background py-16 md:py-24" data-testid="section-video">
       <div className="max-w-7xl mx-auto px-6">
         
         {/* Section Header */}
