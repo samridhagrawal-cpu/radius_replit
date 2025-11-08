@@ -25,7 +25,7 @@ export default function URLInputForm({ onAnalyze, isLoading = false }: URLInputF
         <CardHeader className="text-center space-y-2">
           <div className="flex items-center justify-center gap-2 mb-2">
             <Sparkles className="w-8 h-8 text-primary" />
-            <CardTitle className="text-4xl font-bold">GeoPulse</CardTitle>
+            <CardTitle className="text-4xl font-bold">Radius</CardTitle>
           </div>
           <CardDescription className="text-lg">
             Analyze your brand's visibility across AI platforms like ChatGPT, Claude, Gemini, and Perplexity

@@ -67,7 +67,7 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
       toast({
         title: "Account created",
-        description: "Welcome to GeoPulse! You're now signed in.",
+        description: "Welcome to Radius! You're now signed in.",
       });
       onOpenChange(false);
       signupForm.reset();

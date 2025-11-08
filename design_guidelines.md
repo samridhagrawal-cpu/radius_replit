@@ -1,4 +1,4 @@
-# GeoPulse Design Guidelines
+# Radius Design Guidelines
 
 ## Design Approach
 **System**: Modern SaaS Landing Page + Dashboard Pattern  

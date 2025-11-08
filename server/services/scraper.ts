@@ -28,7 +28,7 @@ export async function scrapeWebsite(url: string): Promise<WebsiteInfo> {
     try {
       response = await fetch(fullUrl, {
         headers: {
-          'User-Agent': 'Mozilla/5.0 (compatible; GeoPulse/1.0; +https://geopulse.ai)',
+          'User-Agent': 'Mozilla/5.0 (compatible; Radius/1.0; +https://radius.ai)',
         },
       });
     } catch (fetchError: any) {

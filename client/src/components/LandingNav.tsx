@@ -80,7 +80,7 @@ export default function LandingNav() {
             <div className="h-9 w-9 bg-black rounded-full flex items-center justify-center">
               <Circle className="h-4 w-4 text-white" />
             </div>
-            <span className="text-lg font-bold text-black">GeoPulse</span>
+            <span className="text-lg font-bold text-black">Radius</span>
           </div>
           
           {/* Center Navigation Links */}
