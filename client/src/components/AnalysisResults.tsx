@@ -86,29 +86,55 @@ export default function AnalysisResults({ data }: AnalysisResultsProps) {
       </div>
       {/* Liquid Glass Tab Navigation */}
       <div className="mb-12">
-        <div className="flex items-center gap-2 p-1.5 bg-card/90 backdrop-blur-xl border border-border rounded-full shadow-lg overflow-x-auto flex-wrap text-justify">
-          {tabs.map((tab) => (
+        <div className="flex items-center justify-between gap-2 p-1.5 bg-card/90 backdrop-blur-xl border border-border rounded-full shadow-lg overflow-x-auto">
+          {/* Left-aligned tabs */}
+          <div className="flex items-center gap-2">
+            {tabs.filter(tab => tab.id !== "methodology").map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                data-testid={`tab-${tab.id}`}
+                className={`
+                  px-4 py-2.5 rounded-full font-medium text-xs sm:text-sm whitespace-nowrap
+                  transition-all duration-300 ease-out
+                  relative overflow-hidden
+                  ${
+                    activeTab === tab.id
+                      ? "bg-foreground text-background shadow-md"
+                      : "bg-transparent text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                  }
+                `}
+              >
+                {activeTab === tab.id && (
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/10 to-transparent pointer-events-none" />
+                )}
+                <span className="relative z-10">{tab.label}</span>
+              </button>
+            ))}
+          </div>
+          
+          {/* Right-aligned Methodology tab */}
+          <div className="flex items-center">
             <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              data-testid={`tab-${tab.id}`}
+              onClick={() => setActiveTab("methodology")}
+              data-testid="tab-methodology"
               className={`
                 px-4 py-2.5 rounded-full font-medium text-xs sm:text-sm whitespace-nowrap
                 transition-all duration-300 ease-out
                 relative overflow-hidden
                 ${
-                  activeTab === tab.id
+                  activeTab === "methodology"
                     ? "bg-foreground text-background shadow-md"
                     : "bg-transparent text-muted-foreground hover:text-foreground hover:bg-accent/50"
                 }
               `}
             >
-              {activeTab === tab.id && (
+              {activeTab === "methodology" && (
                 <div className="absolute inset-0 bg-gradient-to-t from-background/10 to-transparent pointer-events-none" />
               )}
-              <span className="relative z-10">{tab.label}</span>
+              <span className="relative z-10">Methodology</span>
             </button>
-          ))}
+          </div>
         </div>
       </div>
       {/* Tab Content */}
