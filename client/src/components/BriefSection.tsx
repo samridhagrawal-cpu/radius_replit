@@ -43,9 +43,6 @@ export function BriefSection({ overallScore, platformScores, brandName, domain }
   return (
     <div className="border rounded-lg p-6 bg-card" data-testid="brief-section">
       <div className="flex items-start gap-3">
-        <div className="p-2 rounded-lg bg-primary/10">
-          <Sparkles className="w-5 h-5 text-primary" data-testid="icon-sparkles" />
-        </div>
         <div className="flex-1 space-y-2">
           <h3 className="text-lg font-semibold">AI Analysis Brief</h3>
           {!hasValidData ? (
