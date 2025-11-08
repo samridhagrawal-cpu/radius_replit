@@ -408,34 +408,4 @@
   .animation-delay-800 {
     animation-delay: 800ms;
   }
-
-  /* Logo Ribbon Infinite Scroll Animation */
-  @keyframes scroll-logos {
-    0% {
-      transform: translateX(0);
-    }
-    100% {
-      transform: translateX(-33.333%);
-    }
-  }
-
-  .animate-scroll-logos {
-    animation: scroll-logos 30s linear infinite;
-    display: flex;
-    width: max-content;
-    will-change: transform;
-    backface-visibility: hidden;
-  }
-
-  /* Pause animation on hover */
-  .animate-scroll-logos:hover {
-    animation-play-state: paused;
-  }
-
-  /* Respect reduced motion preference */
-  @media (prefers-reduced-motion: reduce) {
-    .animate-scroll-logos {
-      animation: none;
-    }
-  }
 }
