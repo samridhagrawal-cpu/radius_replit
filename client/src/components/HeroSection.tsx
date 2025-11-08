@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Search } from "lucide-react";
+import { Loader2, Search, CheckCircle2, AlertCircle } from "lucide-react";
+import { extractCleanDomain, getUrlError } from "@/lib/urlNormalizer";
 
 interface HeroSectionProps {
   onAnalyze: (url: string) => void;
@@ -11,27 +12,61 @@ interface HeroSectionProps {
 export default function HeroSection({ onAnalyze, isLoading }: HeroSectionProps) {
   const [url, setUrl] = useState("");
   const [error, setError] = useState("");
+  const [processedDomain, setProcessedDomain] = useState("");
+  const [showConfirmation, setShowConfirmation] = useState(false);
+
+  // Real-time validation feedback
+  useEffect(() => {
+    if (!url.trim()) {
+      setError("");
+      setProcessedDomain("");
+      setShowConfirmation(false);
+      return;
+    }
+
+    // Check for immediate errors (localhost, IP, etc.)
+    const immediateError = getUrlError(url);
+    if (immediateError) {
+      setError(immediateError);
+      setProcessedDomain("");
+      setShowConfirmation(false);
+      return;
+    }
+
+    // Try to extract domain for preview
+    try {
+      const domain = extractCleanDomain(url);
+      setProcessedDomain(domain);
+      setError("");
+      setShowConfirmation(true);
+    } catch (err) {
+      // Don't show error while typing, only on submit
+      setProcessedDomain("");
+      setShowConfirmation(false);
+    }
+  }, [url]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    let processedUrl = url.trim();
-    
-    if (!processedUrl) {
+    if (!url.trim()) {
       setError("Please enter a website URL");
       return;
     }
 
-    if (!processedUrl.startsWith("http://") && !processedUrl.startsWith("https://")) {
-      processedUrl = "https://" + processedUrl;
-    }
-
     try {
-      new URL(processedUrl);
-      onAnalyze(processedUrl);
-    } catch {
-      setError("Please enter a valid URL");
+      // Extract clean domain
+      const cleanDomain = extractCleanDomain(url);
+      
+      // Pass clean domain to analysis
+      onAnalyze(cleanDomain);
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Please enter a valid URL (e.g., example.com)");
+      }
     }
   };
 
@@ -73,9 +108,9 @@ export default function HeroSection({ onAnalyze, isLoading }: HeroSectionProps) 
             />
             <Button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || !showConfirmation}
               size="icon"
-              className="h-12 w-12 bg-black hover:bg-gray-900 text-white rounded-full"
+              className="h-12 w-12 bg-black hover:bg-gray-900 text-white rounded-full disabled:opacity-50"
               style={{
                 position: 'absolute',
                 right: '8px',
@@ -91,11 +126,27 @@ export default function HeroSection({ onAnalyze, isLoading }: HeroSectionProps) 
               )}
             </Button>
           </div>
-          {error && (
-            <p className="text-sm text-red-600 mt-2 text-left" data-testid="text-error">
-              {error}
-            </p>
+          
+          {/* Visual confirmation of processed domain */}
+          {showConfirmation && processedDomain && !error && (
+            <div className="flex items-center gap-2 mt-3 text-left" data-testid="text-domain-confirmation">
+              <CheckCircle2 className="w-4 h-4 text-green-600" />
+              <span className="text-sm text-gray-700">
+                Analyzing: <span className="font-semibold text-black">{processedDomain}</span>
+              </span>
+            </div>
           )}
+          
+          {/* Error display */}
+          {error && (
+            <div className="flex items-center gap-2 mt-3 text-left" data-testid="text-error">
+              <AlertCircle className="w-4 h-4 text-red-600" />
+              <p className="text-sm text-red-600">
+                {error}
+              </p>
+            </div>
+          )}
+          
           <p className="text-sm text-gray-500 mt-4">
             No credit card required • Free comprehensive analysis • Results in 30 seconds
           </p>
