@@ -44,8 +44,13 @@ export function AnalysisTimeline({ isActive, onComplete }: AnalysisTimelineProps
   useEffect(() => {
     if (!isActive || !isVisible) return;
 
+    let isCancelled = false;
+    const timers: NodeJS.Timeout[] = [];
+
     const runTimeline = async () => {
       for (let i = 0; i < STEPS.length; i++) {
+        if (isCancelled) break;
+
         // Mark current step as active
         setStepStatuses(prev => {
           const newStatuses = [...prev];
@@ -61,6 +66,7 @@ export function AnalysisTimeline({ isActive, onComplete }: AnalysisTimelineProps
         let currentProgress = 0;
 
         const progressTimer = setInterval(() => {
+          if (isCancelled) return;
           currentProgress += progressIncrement;
           if (currentProgress >= 100) {
             currentProgress = 100;
@@ -68,9 +74,15 @@ export function AnalysisTimeline({ isActive, onComplete }: AnalysisTimelineProps
           }
           setProgress(currentProgress);
         }, progressInterval);
+        timers.push(progressTimer);
 
         // Wait for step duration
-        await new Promise(resolve => setTimeout(resolve, step.duration));
+        await new Promise(resolve => {
+          const timer = setTimeout(resolve, step.duration);
+          timers.push(timer);
+        });
+
+        if (isCancelled) break;
 
         // Mark step as completed
         clearInterval(progressTimer);
@@ -83,17 +95,29 @@ export function AnalysisTimeline({ isActive, onComplete }: AnalysisTimelineProps
         setProgress(0);
       }
 
+      if (isCancelled) return;
+
       // All steps completed - wait then exit
-      setTimeout(() => {
+      const exitTimer1 = setTimeout(() => {
+        if (isCancelled) return;
         setIsExiting(true);
-        setTimeout(() => {
+        const exitTimer2 = setTimeout(() => {
+          if (isCancelled) return;
           setIsVisible(false);
           onComplete?.();
         }, 600);
+        timers.push(exitTimer2);
       }, 1500);
+      timers.push(exitTimer1);
     };
 
     runTimeline();
+
+    // Cleanup function
+    return () => {
+      isCancelled = true;
+      timers.forEach(timer => clearTimeout(timer));
+    };
   }, [isActive, isVisible, onComplete]);
 
   if (!isVisible) return null;

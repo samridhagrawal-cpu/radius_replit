@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import LandingNav from "@/components/LandingNav";
@@ -11,6 +11,7 @@ import type { AnalysisResult } from "@shared/schema";
 
 export default function Home() {
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
+  const [pendingResult, setPendingResult] = useState<AnalysisResult | null>(null);
   const { toast } = useToast();
 
   const analyzeMutation = useMutation({
@@ -19,13 +20,16 @@ export default function Home() {
       return await response.json() as AnalysisResult;
     },
     onSuccess: (data) => {
-      setAnalysisResult(data);
+      // Hold result until timeline completes
+      setPendingResult(data);
       toast({
         title: "Analysis Complete!",
         description: `Your website scored ${data.overallScore}/100 across AI platforms.`,
       });
     },
     onError: (error: Error) => {
+      // Reset timeline on error
+      setPendingResult(null);
       toast({
         title: "Analysis Failed",
         description: error.message || "Failed to analyze website. Please try again.",
@@ -38,20 +42,30 @@ export default function Home() {
     analyzeMutation.mutate(url);
   };
 
-  const handleNewAnalysis = () => {
+  const handleNewAnalysis = useCallback(() => {
     setAnalysisResult(null);
-  };
+    setPendingResult(null);
+  }, []);
+
+  const handleTimelineComplete = useCallback(() => {
+    // Show results only after timeline exit animation completes
+    setPendingResult(current => {
+      if (current) {
+        setAnalysisResult(current);
+        return null;
+      }
+      return current;
+    });
+  }, []);
 
   if (!analysisResult) {
     return (
       <>
         <LandingNav />
-        <HeroSection onAnalyze={handleAnalyze} isLoading={analyzeMutation.isPending} />
+        <HeroSection onAnalyze={handleAnalyze} isLoading={analyzeMutation.isPending || !!pendingResult} />
         <AnalysisTimeline 
-          isActive={analyzeMutation.isPending}
-          onComplete={() => {
-            // Timeline will auto-hide when analysis completes
-          }}
+          isActive={analyzeMutation.isPending || !!pendingResult}
+          onComplete={handleTimelineComplete}
         />
       </>
     );
