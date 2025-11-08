@@ -77,7 +77,7 @@ export default function HeroSection({ onAnalyze, isLoading }: HeroSectionProps) 
           Increase your visibility
           <br />
           <span className="relative inline-block">
-            <span className="relative inline-block text-white" style={{
+            <span className="relative inline-block text-white mt-[19px] mb-[19px]" style={{
               background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.05) 50%, rgba(0, 0, 0, 0.2) 100%), #000',
               padding: '8px 20px',
               borderRadius: '12px'
