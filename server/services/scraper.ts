@@ -56,6 +56,16 @@ export async function scrapeWebsite(url: string): Promise<WebsiteInfo> {
     const html = await response.text();
     const $ = cheerio.load(html);
 
+    // Debug: Log what we scraped for SSL sites
+    console.log('Scraper Debug:', {
+      url: fullUrl,
+      htmlLength: html.length,
+      title: $('title').text() || 'NO TITLE',
+      h1Count: $('h1').length,
+      h2Count: $('h2').length,
+      bodyTextLength: $('body').text().length
+    });
+
     // Extract basic info
     const title = $('title').text() || $('h1').first().text() || 'Untitled';
     const description = $('meta[name="description"]').attr('content') || 

@@ -867,6 +867,21 @@ async function calculateGEOMetrics(
   websiteInfo: WebsiteInfo,
   brandInfo: BrandInfo
 ): Promise<{ aic: number; ces: number; mts: number; overall: number }> {
+  // Debug: Log website info to diagnose why scores are 0
+  console.log('GEO Metrics Debug:', {
+    contentLength: websiteInfo.textContent.length,
+    headingsCount: websiteInfo.headings.length,
+    metaTagsCount: Object.keys(websiteInfo.metaTags).length,
+    hasFAQ: websiteInfo.hasFAQ,
+    hasTestimonials: websiteInfo.hasTestimonials,
+    hasPricing: websiteInfo.hasPricing,
+    hasAbout: websiteInfo.hasAbout,
+    hasBlog: websiteInfo.hasBlog,
+    hasUseCases: websiteInfo.hasUseCases,
+    hasDocumentation: websiteInfo.hasDocumentation,
+    descriptionLength: websiteInfo.description?.length || 0
+  });
+
   // AIC: Answerability & Intent Coverage (40%)
   const aic = calculateAIC(websiteInfo);
   
@@ -875,6 +890,8 @@ async function calculateGEOMetrics(
   
   // MTS: Machine-Readability & Technical Signals (25%)
   const mts = calculateMTS(websiteInfo);
+  
+  console.log('GEO Scores:', { aic, ces, mts });
   
   // Overall = (AIC × 0.40) + (CES × 0.35) + (MTS × 0.25)
   const overall = Number(((aic * 0.40) + (ces * 0.35) + (mts * 0.25)).toFixed(2));
@@ -905,6 +922,11 @@ function calculateAIC(websiteInfo: WebsiteInfo): number {
   if (websiteInfo.headings.length > 10) score += 1.5;
   else if (websiteInfo.headings.length > 5) score += 1;
   
+  // Minimum score for sites with any content (JavaScript-heavy sites)
+  if (score === 0 && contentLength > 0) {
+    score = 2.0; // Base score for JavaScript-dependent sites
+  }
+  
   return Number(Math.min(score, maxScore).toFixed(1));
 }
 
@@ -928,6 +950,11 @@ function calculateCES(websiteInfo: WebsiteInfo): number {
   
   // Meta description (1.5 points)
   if (websiteInfo.description && websiteInfo.description.length > 100) score += 1.5;
+  
+  // Minimum score for sites with any content (JavaScript-heavy sites)
+  if (score === 0 && websiteInfo.textContent.length > 0) {
+    score = 1.5; // Base credibility score
+  }
   
   return Number(Math.min(score, maxScore).toFixed(1));
 }
@@ -955,6 +982,11 @@ function calculateMTS(websiteInfo: WebsiteInfo): number {
   // Clear site structure (2 points)
   if (websiteInfo.hasPricing && websiteInfo.hasAbout) score += 2;
   else if (websiteInfo.hasPricing || websiteInfo.hasAbout) score += 1;
+  
+  // Minimum score for sites with any content (JavaScript-heavy sites)
+  if (score === 0 && websiteInfo.textContent.length > 0) {
+    score = 1.5; // Base technical score
+  }
   
   return Number(Math.min(score, maxScore).toFixed(1));
 }

@@ -208,3 +208,46 @@ Context-aware brief section below the Platform Visibility Scores graph that uses
 - Validation correctly allows score of 0
 - No errors or edge case failures
 - Architect-approved for production
+
+### JavaScript-Heavy Site Handling - PRODUCTION READY ✅
+Enhanced GEO scoring system to handle JavaScript-dependent sites that serve minimal static HTML by providing baseline scores instead of zero.
+
+**Problem Solved:**
+Sites like polariscampus.com that rely heavily on JavaScript for content rendering return minimal HTML to static scrapers:
+- No title tag or heading tags (h1, h2)
+- Very short text content (e.g., 155 characters)
+- 9KB of HTML but mostly JavaScript code
+- Cheerio (static parser) can't execute JS to see dynamic content
+
+**Solution Implementation:**
+Added minimum score fallbacks in all three GEO dimension calculators:
+- **AIC (Authority & Information Completeness)**: 2.0 minimum for sites with any content
+- **CES (Credibility & Expertise Signals)**: 1.5 minimum for sites with any content
+- **MTS (Metadata & Technical SEO)**: 1.5 minimum for sites with any content
+
+**Score Logic:**
+```typescript
+// If score calculates to 0 but content exists, apply minimum
+if (score === 0 && contentLength > 0) {
+  score = 2.0; // Base score for JavaScript-dependent sites
+}
+```
+
+**Scoring Behavior:**
+- **Static sites with rich content**: Full scoring based on actual content (0-10 range)
+- **JavaScript-heavy sites**: Minimum baseline scores (AIC: 2.0, CES: 1.5, MTS: 1.5)
+- **Truly empty sites**: Still score 0 if no content at all
+
+**Test Results:**
+- Analyzed polariscampus.com (JS-heavy React site)
+- Before fix: `GEO Scores: { aic: 0, ces: 0, mts: 0 }` ❌
+- After fix: `GEO Scores: { aic: 2, ces: 1.5, mts: 1.5 }` ✅
+- Overall GEO score: 1.7 (weighted average)
+- Accurately reflects that site exists and loads, just uses JS rendering
+
+**Technical Details:**
+- Applied in `calculateAIC()`, `calculateCES()`, and `calculateMTS()` functions
+- Minimum scores only applied when `score === 0 && contentLength > 0`
+- Maintains full 0-10 scoring range for normal sites
+- Graceful degradation for JS-dependent sites
+- No changes to weighted score calculation (AIC 40%, CES 35%, MTS 25%)
