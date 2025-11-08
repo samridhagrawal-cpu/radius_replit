@@ -1,0 +1,62 @@
+Hello Replit. We need to implement critical UI/UX fixes and design updates on the landing page's hero section. My previous attempts were unsatisfactory, as the search bar layout was broken, and the "liquid glass" effect was not correctly applied.
+I am providing a single inspiration image for the design language. All content on the page must remain exactly as it is in the current code.
+
+Non-Negotiable Directives:
+CONTENT IS SACRED:
+DO NOT ALTER ANY TEXT. This includes the main headline, sub-headline, search bar placeholder, and navigation links.
+Do NOT introduce text from the inspiration image.
+PRESERVE FUNCTIONALITY: The backend connections and JavaScript logic for the search bar, navigation, and any other interactive elements must remain 100% untouched and functional. These are purely stylistic (CSS) changes.
+
+CRITICAL FIX 1: Search Bar Layout and Styling
+The search button must be integrated within the input field, on the far right, matching the inspiration image perfectly.
+HTML Structure (Refinement if needed): Ensure the <input> element and the search <button> are contained within a single parent element (e.g., a div or form).
+Parent Container CSS:
+Set display: flex; or position: relative; on the parent container to allow the button to be placed inside the input visually.
+Ensure the width of this container allows the search bar to span a reasonable portion of the page, similar to the inspiration.
+Input Field (<input>):
+Appearance: Must have a white background, rounded corners, and a subtle box-shadow (e.g., box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.05);) to mimic the premium, lifted look of the inspiration.
+Text: Keep the existing placeholder text. Its color should be a light gray.
+Internal Spacing: Add sufficient padding-right to the input so the text does not overlap the internal search button (e.g., padding-right: 60px;).
+Search Button (<button>):
+Positioning: This is critical. The button must be positioned absolutely within its parent container, on the right side of the input field.
+CSS
+position: absolute;
+right: 8px; /* Adjust as needed for spacing */
+top: 50%;
+transform: translateY(-50%); /* Vertically center it */
+
+
+Appearance: Must be a solid black circle with a white search icon inside, exactly matching the inspiration image. Ensure its size is proportionate.
+Functionality: Ensure the button's click handler (or form submit) is fully operational.
+
+CRITICAL FIX 2: 'Age of AI' Liquid Glass Highlight Effect
+The highlight effect must be a premium "liquid glass" shine, not a flat solid color.
+Target: The element wrapping the text "Age of AI."
+Base Style: Set the background to black (#000) and the text color to white (#FFF).
+Shape: Apply padding and border-radius to create the rounded capsule shape, similar to the inspiration image. (e.g., padding: 8px 14px; border-radius: 12px;).
+Liquid Glass Effect (CSS background-image with linear-gradient): This is the key. Apply a subtle gradient overlay to achieve the glossy, reflective look.
+CSS
+background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.25) 0%, /* Top-left highlight */
+    rgba(255, 255, 255, 0.05) 50%, /* Mid-point subtle reflection */
+    rgba(0, 0, 0, 0.2) 100% /* Bottom-right shadow/depth */
+  ),
+  #000; /* Base black color */
+color: #FFF; /* Ensure text remains white */
+This linear-gradient is designed to create the visual depth and sheen characteristic of a "liquid glass" effect over the black background.
+
+Additional Styling Refinements:
+Headline ("Be Found in the"): Maintain its heavy, bold font-weight and black color.
+Sub-headline ("Advanced GEO targeting..."):
+Remove the underline from "GEO targeting."
+Style the entire sub-headline with a regular font-weight and a medium-gray color, matching the body text style in the inspiration.
+Navigation Links:
+The links ("Features", "Pricing", "Resources", "About") must be styled with a regular font-weight (not bold) and a medium-gray color, consistent with the navigation in the inspiration.
+Navigation CTA ("Start Free Trial"):
+Keep the existing "Start Free Trial" button.
+It should have a solid black background and white text, with appropriate padding and border-radius to match the "Get Started" button in the inspiration.
+Focus on these details to achieve a precise match to the desired design language while preserving content and functionality.
+
+
+

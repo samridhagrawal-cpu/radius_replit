@@ -41,9 +41,10 @@ export default function HeroSection({ onAnalyze, isLoading }: HeroSectionProps) 
         <h1 className="text-5xl md:text-6xl lg:text-7xl font-black tracking-tight text-black leading-tight">
           Be Found in the{" "}
           <span className="relative inline-block">
-            <span className="relative px-6 py-2 text-white bg-gray-200 rounded-[2rem] inline-block" style={{
-              background: 'linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #000000 100%)',
-              boxShadow: 'inset 0 2px 8px rgba(255, 255, 255, 0.15), inset 0 -2px 8px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.2)'
+            <span className="relative inline-block text-white" style={{
+              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.05) 50%, rgba(0, 0, 0, 0.2) 100%), #000',
+              padding: '8px 20px',
+              borderRadius: '12px'
             }}>
               Age of AI
             </span>
@@ -56,16 +57,17 @@ export default function HeroSection({ onAnalyze, isLoading }: HeroSectionProps) 
         </p>
 
         <form onSubmit={handleSubmit} className="max-w-2xl mx-auto mt-12">
-          <div className="relative">
+          <div className="relative flex items-center">
             <Input
               type="text"
               placeholder="www.techstartup.io"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               disabled={isLoading}
-              className="w-full border-0 focus-visible:ring-0 text-base h-16 bg-white text-black placeholder:text-gray-400 pr-16 rounded-full"
+              className="w-full border-0 focus-visible:ring-0 text-base h-16 bg-white text-black placeholder:text-gray-400 rounded-full"
               style={{
-                boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.08)'
+                paddingRight: '60px',
+                boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.05)'
               }}
               data-testid="input-url"
             />
@@ -73,7 +75,13 @@ export default function HeroSection({ onAnalyze, isLoading }: HeroSectionProps) 
               type="submit"
               disabled={isLoading}
               size="icon"
-              className="absolute right-2 top-1/2 -translate-y-1/2 h-12 w-12 bg-black hover:bg-gray-900 text-white rounded-full"
+              className="h-12 w-12 bg-black hover:bg-gray-900 text-white rounded-full"
+              style={{
+                position: 'absolute',
+                right: '8px',
+                top: '50%',
+                transform: 'translateY(-50%)'
+              }}
               data-testid="button-analyze"
             >
               {isLoading ? (
