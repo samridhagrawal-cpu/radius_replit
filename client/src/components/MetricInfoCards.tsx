@@ -116,7 +116,7 @@ export function MetricInfoCards({ data }: MetricInfoCardsProps) {
   };
 
   return (
-    <div className="mt-12 space-y-8">
+    <div className="mt-12 space-y-8 pt-[34px] pb-[34px]">
       {/* Section Header */}
       <div className="text-center space-y-2">
         <h3 className="text-2xl font-bold text-foreground">Understanding Your Visibility Metrics</h3>
@@ -124,7 +124,6 @@ export function MetricInfoCards({ data }: MetricInfoCardsProps) {
           Learn what each dimension measures and how to improve it
         </p>
       </div>
-
       {/* Metric Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {METRICS_INFO.map((metric) => {
