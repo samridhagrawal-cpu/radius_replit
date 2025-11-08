@@ -243,28 +243,42 @@ async function discoverCompetitors(brandInfo: BrandInfo, websiteInfo: WebsiteInf
     ? tracxnCompetitors.map(c => `${c.name} (${c.domain})`).join(', ')
     : 'discover competitors';
 
-  const prompt = `You are analyzing competitors for ${brandInfo.name} (${brandInfo.domain}), a company in the ${brandInfo.industry} industry.
+  const prompt = `You are a market research analyst identifying DIRECT, SPECIFIC competitors for ${brandInfo.name} (${brandInfo.domain}).
 
-Based on this information:
+Company Profile:
 - Industry: ${brandInfo.industry}
 - Description: ${brandInfo.description}
-${tracxnCompetitors.length > 0 ? `- Known competitors: ${competitorList}` : ''}
+- Website: ${brandInfo.domain}
+${tracxnCompetitors.length > 0 ? `\n- Known competitors from market data: ${competitorList}` : ''}
 
+CRITICAL INSTRUCTIONS:
 ${tracxnCompetitors.length > 0 
-  ? 'Using the provided competitor list, analyze and rank them.' 
-  : 'Generate a realistic list of 3-4 ACTUAL competitors in this space. These should be real companies that compete in the same market.'
+  ? '1. Use ONLY the provided competitor list from market data. These are verified real competitors.\n2. Analyze and rank them based on market position and AI visibility.'
+  : `1. Find 3-4 DIRECT competitors that sell similar products/services in the SAME SPECIFIC NICHE
+2. These MUST be real companies with actual websites (not marketplaces or platforms)
+3. DO NOT include:
+   - E-commerce marketplaces (Amazon, Flipkart, eBay, Etsy, etc.)
+   - Generic retailers (Walmart, Target, etc.)
+   - Platforms (Shopify stores, marketplaces)
+   - Payment processors or service providers
+4. DO include:
+   - Brands that make/sell the SAME type of product
+   - Direct competitors in the SAME market segment
+   - Companies with similar target customers
+   
+Example: If analyzing a water bottle brand, competitors should be OTHER water bottle brands (Hydro Flask, S'well, Yeti), NOT Amazon or Walmart.`
 }
 
-For each competitor, provide:
-1. name: Company name
-2. domain: Their website domain
-3. score: Estimated AI visibility score (60-95)
-4. marketOverlap: How much they overlap with ${brandInfo.name} (50-90%)
-5. strengths: 2-3 specific strengths (be realistic)
+For each competitor provide:
+1. name: Exact company/brand name
+2. domain: Their actual website domain (verify it's real)
+3. score: Estimated AI visibility score (60-95) - be realistic
+4. marketOverlap: Market overlap percentage (50-90%)
+5. strengths: 2-3 SPECIFIC competitive advantages
 
-Also rank ${brandInfo.name} among these competitors based on typical market position.
+Rank ${brandInfo.name} realistically among competitors based on market position.
 
-Return JSON:
+Return valid JSON only:
 {
   "competitors": [
     {
@@ -273,13 +287,13 @@ Return JSON:
       "domain": "competitor.com",
       "score": 85,
       "marketOverlap": 75,
-      "strengths": ["strength 1", "strength 2"]
+      "strengths": ["specific strength 1", "specific strength 2"]
     }
   ],
   "yourRank": 2
 }`;
 
-  const response = await analyzeWithGPT(prompt, { jsonMode: true, temperature: 0.8 });
+  const response = await analyzeWithGPT(prompt, { jsonMode: true, temperature: 0.3 });
   
   let parsed: unknown;
   try {
