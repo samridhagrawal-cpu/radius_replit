@@ -83,7 +83,7 @@ export function AnalysisTimeline({ isActive, onComplete }: AnalysisTimelineProps
         {/* Percentage Display */}
         <div className="text-center mb-6">
           <p 
-            className="md:text-6xl font-bold tracking-tight text-[55px]"
+            className="md:text-6xl font-bold tracking-tight text-[50px]"
             style={{ color: '#6B7280' }}
             data-testid="progress-percentage"
           >
