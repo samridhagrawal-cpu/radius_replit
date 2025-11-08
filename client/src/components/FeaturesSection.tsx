@@ -18,7 +18,6 @@ const FeatureCard = ({ title, description, visualization, animationDelay }: Feat
           {description}
         </p>
       </div>
-
       <div className="relative aspect-[16/9] bg-muted/30 rounded-xl overflow-hidden border border-border">
         {visualization === 'chart' && <ChartVisualization />}
         {visualization === 'bars' && <BarsVisualization />}
@@ -27,7 +26,6 @@ const FeatureCard = ({ title, description, visualization, animationDelay }: Feat
         
         <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/5 transition-all duration-300" />
       </div>
-
       <div className="absolute bottom-0 left-0 right-0 h-1 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left rounded-b-2xl" />
     </div>
   );
@@ -156,7 +154,7 @@ export const FeaturesSection = () => {
   ];
 
   return (
-    <section className="w-full bg-background py-20 md:py-32" data-testid="section-features">
+    <section className="w-full bg-background py-20 md:py-32 pt-[4px] pb-[4px]" data-testid="section-features">
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-16 md:mb-20 animate-fade-in-up">
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-4 leading-tight">
