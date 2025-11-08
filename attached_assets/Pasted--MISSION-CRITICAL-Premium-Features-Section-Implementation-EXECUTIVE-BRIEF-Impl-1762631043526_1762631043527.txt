@@ -1,0 +1,694 @@
+## **🎯 MISSION CRITICAL: Premium Features Section Implementation**
+
+### **📋 EXECUTIVE BRIEF**
+Implement a world-class features section on the Radius landing page that showcases four key capabilities: Visibility, Sources, Competitor Tracking, and Recent Mentions. The design must maintain the existing minimal black-and-white aesthetic while delivering maximum visual impact through elegant typography, subtle interactions, and data visualization elements inspired by the Relixir reference screenshots.
+
+---
+
+## **🖼️ REFERENCE MATERIALS**
+
+**Screenshot 1 & 2 (Relixir.ai):** Source for content structure and feature concepts
+**Screenshot 3 (Current Radius site):** Existing design language to maintain
+
+### **Current Design Language (Screenshot 3):**
+- **Color Scheme:** Pure black text on white background, black accent highlights
+- **Typography:** Bold, large headlines with "across AI platforms" in black highlight box
+- **Spacing:** Generous white space, clean margins
+- **Components:** Rounded input fields, circular search button, minimal stats bar
+- **Overall Vibe:** Ultra-minimal, premium, confident, modern SaaS
+
+---
+
+## **🎨 COMPLETE FEATURE SECTION SPECIFICATIONS**
+
+### **Section Layout Structure**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                                                              │
+│                    [Hero Section - Existing]                 │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+                            ↓
+                      80-100px spacing
+                            ↓
+┌─────────────────────────────────────────────────────────────┐
+│                                                              │
+│              Comprehensive AI Visibility Analytics           │  ← Section Header
+│    Everything you need to dominate AI search and discovery  │  ← Subheader
+│                                                              │
+│   ┌──────────────────────┬──────────────────────┐          │
+│   │                      │                      │          │
+│   │    VISIBILITY        │       SOURCES        │          │  ← Feature Cards Row 1
+│   │                      │                      │          │
+│   └──────────────────────┴──────────────────────┘          │
+│                                                              │
+│   ┌──────────────────────┬──────────────────────┐          │
+│   │                      │                      │          │
+│   │ COMPETITOR TRACKING  │   RECENT MENTIONS    │          │  ← Feature Cards Row 2
+│   │                      │                      │          │
+│   └──────────────────────┴──────────────────────┘          │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## **💻 COMPLETE IMPLEMENTATION CODE**
+
+### **Component: `FeaturesSection.tsx`**
+
+```typescript
+import React from 'react';
+
+interface FeatureCardProps {
+  title: string;
+  description: string;
+  visualization: 'chart' | 'bars' | 'table' | 'mentions';
+}
+
+const FeatureCard: React.FC<FeatureCardProps> = ({ title, description, visualization }) => {
+  return (
+    <div className="group relative bg-white border-2 border-gray-200 rounded-2xl p-8 hover:border-black transition-all duration-300 hover:shadow-2xl hover:scale-[1.02]">
+      {/* Card Header */}
+      <div className="mb-6">
+        <h3 className="text-2xl md:text-3xl font-bold text-black mb-3">
+          {title}
+        </h3>
+        <p className="text-base text-gray-600 leading-relaxed">
+          {description}
+        </p>
+      </div>
+
+      {/* Visualization Preview */}
+      <div className="relative aspect-[16/9] bg-gray-50 rounded-xl overflow-hidden border border-gray-100">
+        {visualization === 'chart' && <ChartVisualization />}
+        {visualization === 'bars' && <BarsVisualization />}
+        {visualization === 'table' && <TableVisualization />}
+        {visualization === 'mentions' && <MentionsVisualization />}
+        
+        {/* Hover Overlay */}
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-300" />
+      </div>
+
+      {/* Bottom Accent Line */}
+      <div className="absolute bottom-0 left-0 right-0 h-1 bg-black scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left rounded-b-2xl" />
+    </div>
+  );
+};
+
+// Visualization Components
+const ChartVisualization: React.FC = () => (
+  <div className="w-full h-full flex items-center justify-center p-6">
+    <svg viewBox="0 0 400 200" className="w-full h-full">
+      {/* Blue Line (Salesforce) */}
+      <path
+        d="M 20 140 Q 80 120, 120 100 T 200 80 T 280 100 T 360 120"
+        fill="none"
+        stroke="#3B82F6"
+        strokeWidth="3"
+        className="animate-draw-line"
+      />
+      {/* Orange Line (Hubspot) */}
+      <path
+        d="M 20 160 Q 80 145, 120 130 T 200 110 T 280 130 T 360 150"
+        fill="none"
+        stroke="#F97316"
+        strokeWidth="3"
+        className="animate-draw-line [animation-delay:200ms]"
+      />
+      {/* Data Point Tooltip */}
+      <circle cx="200" cy="80" r="6" fill="#3B82F6" className="animate-pulse" />
+      <circle cx="200" cy="110" r="6" fill="#F97316" className="animate-pulse" />
+    </svg>
+  </div>
+);
+
+const BarsVisualization: React.FC = () => (
+  <div className="w-full h-full flex items-end justify-around p-8 gap-3">
+    {[
+      { height: '75%', color: 'bg-blue-200', label: 'Twitter 39%' },
+      { height: '90%', color: 'bg-blue-400', label: 'YouTube 29%' },
+      { height: '45%', color: 'bg-gray-300', label: 'Wiki 15%' },
+      { height: '60%', color: 'bg-gray-200', label: 'LinkedIn' },
+      { height: '55%', color: 'bg-gray-200', label: 'P' },
+    ].map((bar, index) => (
+      <div key={index} className="flex-1 flex flex-col items-center gap-2">
+        <div
+          className={`w-full ${bar.color} rounded-t-lg transition-all duration-700 hover:opacity-80`}
+          style={{ height: bar.height }}
+        />
+        <span className="text-xs text-gray-600 text-center">{bar.label}</span>
+      </div>
+    ))}
+  </div>
+);
+
+const TableVisualization: React.FC = () => (
+  <div className="w-full h-full p-6 flex flex-col justify-center">
+    <div className="space-y-3">
+      {[
+        { rank: '1', name: 'Salesforce', score: '39%', trend: '+4%', color: 'text-green-600' },
+        { rank: '2', name: 'Subspot', score: '33%', trend: '-1%', color: 'text-red-600' },
+        { rank: '3', name: 'Zoho CRM', score: '24%', trend: '-6%', color: 'text-red-600' },
+        { rank: '4', name: 'Pipedrive', score: '23%', trend: '0%', color: 'text-gray-600' },
+      ].map((item, index) => (
+        <div
+          key={index}
+          className="flex items-center justify-between py-3 px-4 bg-white rounded-lg border border-gray-100 hover:border-gray-300 transition-all"
+        >
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-bold text-gray-400 w-6">{item.rank}</span>
+            <span className="text-sm font-semibold text-black">{item.name}</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="text-sm font-bold text-black">{item.score}</span>
+            <span className={`text-xs font-semibold ${item.color}`}>{item.trend}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+const MentionsVisualization: React.FC = () => (
+  <div className="w-full h-full p-6 flex flex-col justify-center gap-4">
+    {[
+      { position: '1st', color: 'bg-blue-500', width: '85%', icon: '🎯' },
+      { position: '2nd', color: 'bg-green-500', width: '70%', icon: '⭐' },
+      { position: '3rd', color: 'bg-gray-400', width: '60%', icon: '💎' },
+    ].map((item, index) => (
+      <div key={index} className="flex items-center gap-3">
+        <span className="text-2xl">{item.icon}</span>
+        <div className="flex-1 bg-gray-100 rounded-full h-8 overflow-hidden">
+          <div
+            className={`h-full ${item.color} rounded-full flex items-center justify-end px-3 transition-all duration-700`}
+            style={{ width: item.width }}
+          >
+            <span className="text-xs font-bold text-white">#{item.position} position</span>
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+);
+
+// Main Features Section Component
+export const FeaturesSection: React.FC = () => {
+  const features = [
+    {
+      title: 'Visibility',
+      description: 'Understand how your brand is performing in AI Search across ChatGPT, Claude, Gemini, and Perplexity.',
+      visualization: 'chart' as const,
+    },
+    {
+      title: 'Sources',
+      description: 'Understand which sources have the highest impact on your AI visibility and rankings.',
+      visualization: 'bars' as const,
+    },
+    {
+      title: 'Competitor Tracking',
+      description: 'Measure your performance against your competitors with real-time ranking analysis.',
+      visualization: 'table' as const,
+    },
+    {
+      title: 'Recent Mentions',
+      description: 'Track and follow conversations where you are mentioned across AI platforms in real-time.',
+      visualization: 'mentions' as const,
+    },
+  ];
+
+  return (
+    <section className="w-full bg-white py-20 md:py-32">
+      <div className="max-w-7xl mx-auto px-6">
+        {/* Section Header */}
+        <div className="text-center mb-16 md:mb-20">
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-black mb-4 leading-tight">
+            Comprehensive AI Visibility
+            <br />
+            <span className="relative inline-block mt-2">
+              <span className="bg-black text-white px-6 py-2 rounded-xl">
+                Analytics
+              </span>
+            </span>
+          </h2>
+          <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto mt-6">
+            Everything you need to dominate AI search and discovery
+          </p>
+        </div>
+
+        {/* Features Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+          {features.map((feature, index) => (
+            <FeatureCard
+              key={index}
+              title={feature.title}
+              description={feature.description}
+              visualization={feature.visualization}
+            />
+          ))}
+        </div>
+
+        {/* Bottom CTA */}
+        <div className="mt-16 text-center">
+          <p className="text-gray-600 mb-6">
+            Ready to see your complete AI visibility profile?
+          </p>
+          <button className="px-8 py-4 bg-black text-white text-lg font-semibold rounded-xl hover:bg-gray-800 transition-all hover:scale-105 active:scale-95 shadow-lg">
+            Start Free Analysis →
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+};
+```
+
+---
+
+## **🎨 REQUIRED CSS ANIMATIONS**
+
+Add these to your `globals.css` or Tailwind config:
+
+```css
+/* Line drawing animation */
+@keyframes draw-line {
+  from {
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+  }
+  to {
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-draw-line {
+  animation: draw-line 2s ease-in-out forwards;
+}
+
+/* Fade in up animation */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease-out forwards;
+}
+
+/* Staggered animation delays */
+.animation-delay-200 {
+  animation-delay: 200ms;
+}
+
+.animation-delay-400 {
+  animation-delay: 400ms;
+}
+
+.animation-delay-600 {
+  animation-delay: 600ms;
+}
+```
+
+**Or in Tailwind config:**
+
+```javascript
+// tailwind.config.js
+module.exports = {
+  theme: {
+    extend: {
+      keyframes: {
+        'draw-line': {
+          'from': { strokeDasharray: '1000', strokeDashoffset: '1000' },
+          'to': { strokeDasharray: '1000', strokeDashoffset: '0' },
+        },
+        'fade-in-up': {
+          'from': { opacity: '0', transform: 'translateY(30px)' },
+          'to': { opacity: '1', transform: 'translateY(0)' },
+        },
+      },
+      animation: {
+        'draw-line': 'draw-line 2s ease-in-out forwards',
+        'fade-in-up': 'fade-in-up 0.6s ease-out forwards',
+      },
+    },
+  },
+};
+```
+
+---
+
+## **🔗 INTEGRATION INTO MAIN PAGE**
+
+Update your main page file (e.g., `app/page.tsx` or `pages/index.tsx`):
+
+```typescript
+import { FeaturesSection } from '@/components/FeaturesSection';
+
+export default function HomePage() {
+  return (
+    <div className="min-h-screen bg-white">
+      {/* Navbar - Existing */}
+      <nav className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-50">
+        {/* Your existing navbar code */}
+      </nav>
+
+      {/* Hero Section - Existing */}
+      <section className="pt-32 pb-20 px-6">
+        {/* Your existing hero code */}
+      </section>
+
+      {/* 🎯 NEW FEATURES SECTION - ADD HERE */}
+      <FeaturesSection />
+
+      {/* Rest of your page */}
+    </div>
+  );
+}
+```
+
+---
+
+## **📐 DESIGN SPECIFICATIONS**
+
+### **Section Container**
+- Background: `#FFFFFF` (pure white)
+- Padding: `80px 24px` (mobile), `128px 24px` (desktop)
+- Max-width: `1280px` (7xl)
+- Margin: `0 auto` (centered)
+
+### **Section Header**
+- Headline: 
+  - Font-size: `36px` (mobile), `48px` (tablet), `60px` (desktop)
+  - Font-weight: `700` (bold)
+  - Color: `#000000` (black)
+  - Line-height: `1.2`
+  - "Analytics" in black box: `background: #000`, `color: #FFF`, `padding: 8px 24px`, `border-radius: 12px`
+- Subheadline:
+  - Font-size: `18px` (mobile), `20px` (desktop)
+  - Color: `#6B7280` (gray-600)
+  - Max-width: `768px`
+  - Margin-top: `24px`
+
+### **Feature Cards**
+- Background: `#FFFFFF`
+- Border: `2px solid #E5E7EB` (gray-200)
+- Border-radius: `16px`
+- Padding: `32px`
+- Hover border: `2px solid #000000`
+- Hover shadow: `0 25px 50px -12px rgba(0,0,0,0.25)`
+- Hover scale: `1.02`
+- Transition: `all 300ms ease`
+
+### **Card Title**
+- Font-size: `24px` (mobile), `30px` (desktop)
+- Font-weight: `700`
+- Color: `#000000`
+- Margin-bottom: `12px`
+
+### **Card Description**
+- Font-size: `16px`
+- Font-weight: `400`
+- Color: `#6B7280`
+- Line-height: `1.6`
+
+### **Visualization Container**
+- Aspect-ratio: `16/9`
+- Background: `#F9FAFB` (gray-50)
+- Border: `1px solid #F3F4F6` (gray-100)
+- Border-radius: `12px`
+- Overflow: `hidden`
+
+### **Grid Layout**
+- Columns: `1` (mobile), `2` (desktop 1024px+)
+- Gap: `24px` (mobile), `32px` (desktop)
+
+---
+
+## **📱 RESPONSIVE BREAKPOINTS**
+
+```css
+/* Mobile: 320px - 767px */
+- Single column layout
+- Padding: 80px 24px
+- Card padding: 24px
+- Font sizes reduced by 25%
+
+/* Tablet: 768px - 1023px */
+- Single column layout (better readability)
+- Padding: 100px 32px
+- Card padding: 28px
+- Standard font sizes
+
+/* Desktop: 1024px+ */
+- Two column grid
+- Padding: 128px 48px
+- Card padding: 32px
+- Full font sizes
+- Hover effects enabled
+```
+
+---
+
+## **✨ INTERACTION DESIGN**
+
+### **Card Hover Effects**
+1. Border color changes from gray-200 to black (300ms)
+2. Shadow grows dramatically (300ms)
+3. Slight scale up to 1.02 (300ms)
+4. Bottom accent line scales in from left (300ms)
+5. Visualization overlay darkens slightly (300ms)
+
+### **Visualization Animations**
+1. **Chart:** Lines draw in from left to right on page load
+2. **Bars:** Bars grow from bottom to top with stagger
+3. **Table:** Rows fade in with sequential delay
+4. **Mentions:** Progress bars fill from left with bounce
+
+### **Scroll Animations (Optional Enhancement)**
+```typescript
+// Add Intersection Observer for scroll animations
+useEffect(() => {
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('animate-fade-in-up');
+        }
+      });
+    },
+    { threshold: 0.1 }
+  );
+
+  document.querySelectorAll('.feature-card').forEach((card) => {
+    observer.observe(card);
+  });
+
+  return () => observer.disconnect();
+}, []);
+```
+
+---
+
+## **🎯 CONTENT MAPPING FROM RELIXIR**
+
+### **Feature 1: Visibility**
+- **Source:** Top-left card in Relixir screenshots
+- **Content:** "Understand how your brand is performing in AI Search"
+- **Visual:** Line chart showing performance trends (Salesforce 44.8%, Hubspot 31.4%)
+- **Radius Implementation:** Dual-line chart with blue/orange theme
+
+### **Feature 2: Sources**
+- **Source:** Top-right card in Relixir screenshots
+- **Content:** "Understand which sources have the highest impact"
+- **Visual:** Bar chart showing platform distribution (YouTube 29%, Twitter 39%, etc.)
+- **Radius Implementation:** Vertical bars with platform icons and percentages
+
+### **Feature 3: Competitor Tracking**
+- **Source:** Bottom-left card in Relixir screenshots
+- **Content:** "Measure your performance against your competitors"
+- **Visual:** Industry ranking table (1. Salesforce 39%, 2. Subspot 33%, etc.)
+- **Radius Implementation:** Clean table with rankings, scores, and trend arrows
+
+### **Feature 4: Recent Mentions**
+- **Source:** Bottom-right card in Relixir screenshots
+- **Content:** "Track and follow conversations where you are mentioned"
+- **Visual:** Position badges (1st, 2nd, 3rd position indicators)
+- **Radius Implementation:** Horizontal progress bars with position labels
+
+---
+
+## **🚀 PERFORMANCE OPTIMIZATION**
+
+### **Code Splitting**
+```typescript
+// Lazy load visualizations
+const ChartVisualization = lazy(() => import('./visualizations/Chart'));
+const BarsVisualization = lazy(() => import('./visualizations/Bars'));
+// etc.
+
+// Wrap in Suspense
+<Suspense fallback={<VisualizationSkeleton />}>
+  <ChartVisualization />
+</Suspense>
+```
+
+### **Image Optimization**
+- Use SVG for all icons and simple graphics
+- No external image dependencies
+- All visualizations are code-based (lightweight)
+
+### **Animation Performance**
+- Only animate `transform` and `opacity` (GPU-accelerated)
+- Use `will-change` sparingly
+- Disable animations on mobile if performance issues
+
+---
+
+## **♿ ACCESSIBILITY REQUIREMENTS**
+
+```typescript
+// Semantic HTML
+<section aria-labelledby="features-heading">
+  <h2 id="features-heading">Comprehensive AI Visibility Analytics</h2>
+  {/* Content */}
+</section>
+
+// Keyboard Navigation
+<div
+  role="article"
+  tabIndex={0}
+  onKeyDown={(e) => {
+    if (e.key === 'Enter') {
+      // Handle card interaction
+    }
+  }}
+>
+
+// Screen Reader Support
+<span className="sr-only">
+  Visibility feature showing AI platform performance trends
+</span>
+
+// Focus Indicators
+.focus-visible:ring-2 .focus-visible:ring-black .focus-visible:ring-offset-2
+
+// Color Contrast
+- All text meets WCAG AA standards (4.5:1 minimum)
+- Interactive elements have 3:1 contrast minimum
+```
+
+---
+
+## **✅ IMPLEMENTATION CHECKLIST**
+
+### **Phase 1: Component Setup (20 mins)**
+- [ ] Create `FeaturesSection.tsx` component file
+- [ ] Create sub-components for each visualization type
+- [ ] Define TypeScript interfaces
+- [ ] Set up component structure
+
+### **Phase 2: Styling (25 mins)**
+- [ ] Apply Tailwind classes per specifications
+- [ ] Create hover effects for cards
+- [ ] Implement responsive grid layout
+- [ ] Add animation keyframes to CSS
+- [ ] Style all visualization components
+- [ ] Test on multiple screen sizes
+
+### **Phase 3: Visualizations (30 mins)**
+- [ ] Build chart visualization with SVG
+- [ ] Create bars visualization
+- [ ] Implement table visualization
+- [ ] Design mentions visualization
+- [ ] Add animation delays and transitions
+- [ ] Test all visualizations
+
+### **Phase 4: Integration (15 mins)**
+- [ ] Import FeaturesSection into main page
+- [ ] Position after hero section
+- [ ] Verify spacing with existing sections
+- [ ] Test scroll behavior
+- [ ] Check mobile layout
+
+### **Phase 5: Polish & Testing (20 mins)**
+- [ ] Add bottom CTA button
+- [ ] Test all hover states
+- [ ] Verify animations work smoothly
+- [ ] Check responsive breakpoints
+- [ ] Test accessibility (keyboard, screen readers)
+- [ ] Cross-browser testing (Chrome, Firefox, Safari, Edge)
+- [ ] Performance audit (Lighthouse)
+- [ ] Final visual QA against Radius design language
+
+---
+
+## **🎯 SUCCESS CRITERIA**
+
+The implementation is successful when:
+
+1. ✅ Features section appears seamlessly below hero section
+2. ✅ All four feature cards display correctly in 2x2 grid (desktop)
+3. ✅ Cards stack vertically on mobile without breaking
+4. ✅ Hover effects are smooth and premium-feeling
+5. ✅ Visualizations animate correctly on page load
+6. ✅ Content from Relixir is accurately adapted
+7. ✅ Design perfectly matches Radius black-and-white aesthetic
+8. ✅ Typography hierarchy is consistent with existing site
+9. ✅ No layout shifts or janky animations
+10. ✅ Section looks like it was always part of the site
+11. ✅ Zero console errors or warnings
+12. ✅ Passes accessibility audit
+13. ✅ Loads in under 2 seconds
+14. ✅ Works flawlessly on all devices and browsers
+
+---
+
+## **🎨 DESIGN PHILOSOPHY**
+
+**Why This Design Works:**
+
+1. **Consistency:** Maintains the exact same visual language as hero section
+2. **Hierarchy:** Clear information architecture with features grid
+3. **Breathing Room:** Generous white space prevents overwhelm
+4. **Interactivity:** Subtle hover effects encourage exploration
+5. **Data Visualization:** Makes complex analytics instantly understandable
+6. **Premium Feel:** High-quality animations and interactions
+7. **Scalability:** Easy to add more features in the future
+
+**Inspiration Sources:**
+- Linear's feature cards (minimal, elegant)
+- Stripe's product pages (clear, confident)
+- Vercel's dashboard (data-rich, clean)
+- Framer's marketing site (smooth interactions)
+
+---
+
+## **📝 FINAL IMPLEMENTATION INSTRUCTIONS FOR REPLIT**
+
+**Provide this exact instruction to Replit Agent:**
+
+"Please refer to the three uploaded screenshots:
+1. Screenshot 1 & 2 show Relixir's features (Visibility, Sources, Competitor Tracking, Recent Mentions)
+2. Screenshot 3 shows our current Radius landing page design
+
+**Task:** Implement a features section immediately after the hero section on the Radius landing page. Use the complete `FeaturesSection.tsx` code provided above. The section must:
+
+- Display four feature cards in a 2x2 grid (desktop) or single column (mobile)
+- Features: Visibility (chart), Sources (bars), Competitor Tracking (table), Recent Mentions (progress bars)
+- Maintain exact Radius design language: black/white color scheme, bold typography, generous spacing
+- Include smooth hover effects: border color change, shadow, scale, bottom accent line
+- Add animated visualizations using SVG and Tailwind
+- Be fully responsive with proper breakpoints
+- Include bottom CTA button
+- Add all required CSS animations to globals.css or Tailwind config
+- Position with 80-100px spacing after hero section
+
+**Critical:** Every design element must perfectly match the existing Radius aesthetic shown in Screenshot 3. No compromise on visual quality, smoothness, or premium feel. Test thoroughly on all screen sizes."

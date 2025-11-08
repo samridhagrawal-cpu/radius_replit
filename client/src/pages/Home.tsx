@@ -3,6 +3,7 @@ import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import LandingNav from "@/components/LandingNav";
 import HeroSection from "@/components/HeroSection";
+import { FeaturesSection } from "@/components/FeaturesSection";
 import DashboardHeader from "@/components/DashboardHeader";
 import AnalysisResults from "@/components/AnalysisResults";
 import type { AnalysisResult } from "@shared/schema";
@@ -56,6 +57,7 @@ export default function Home() {
           isLoading={analyzeMutation.isPending || !!pendingResult}
           onTimelineComplete={handleTimelineComplete}
         />
+        <FeaturesSection />
       </>
     );
   }
