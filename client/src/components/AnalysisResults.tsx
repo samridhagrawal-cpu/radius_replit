@@ -14,6 +14,7 @@ import { CompetitorComparison } from "@/components/CompetitorComparison";
 import { AccuracyIndicator } from "@/components/AccuracyIndicator";
 import { OpenInAIButton } from "@/components/OpenInAIButton";
 import { PDFReport } from "@/components/PDFReport";
+import { BriefSection } from "@/components/BriefSection";
 import { METRIC_DEFINITIONS } from "@/lib/geo-constants";
 import type { AnalysisResult } from "@shared/schema";
 import type { ReportData } from "@/lib/geo-types";
@@ -233,6 +234,14 @@ export default function AnalysisResults({ data }: AnalysisResultsProps) {
           <div>
             <PlatformComparison data={platformScores} />
           </div>
+
+          {/* AI-Generated Brief */}
+          <BriefSection
+            overallScore={overallScore}
+            platformScores={platformScores}
+            brandName={brandInfo.name}
+            domain={domain}
+          />
         </div>
       )}
       {activeTab === "recommendations" && (
