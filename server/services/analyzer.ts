@@ -9,12 +9,33 @@ interface BrandInfo {
   description: string;
 }
 
+function sanitizeWebsiteInfo(raw: WebsiteInfo): WebsiteInfo {
+  return {
+    url: typeof raw.url === 'string' ? raw.url : '',
+    title: typeof raw.title === 'string' ? raw.title : 'Untitled',
+    description: typeof raw.description === 'string' ? raw.description : '',
+    textContent: typeof raw.textContent === 'string' ? raw.textContent : '',
+    headings: Array.isArray(raw.headings) ? raw.headings : [],
+    links: Array.isArray(raw.links) ? raw.links : [],
+    metaTags: typeof raw.metaTags === 'object' && raw.metaTags ? raw.metaTags : {},
+    hasFAQ: Boolean(raw.hasFAQ),
+    hasTestimonials: Boolean(raw.hasTestimonials),
+    hasPricing: Boolean(raw.hasPricing),
+    hasAbout: Boolean(raw.hasAbout),
+    hasBlog: Boolean(raw.hasBlog),
+    hasComparisons: Boolean(raw.hasComparisons),
+    hasDocumentation: Boolean(raw.hasDocumentation),
+    hasUseCases: Boolean(raw.hasUseCases),
+  };
+}
+
 export async function analyzeWebsite(url: string): Promise<AnalysisResult> {
   console.log(`Starting analysis for ${url}...`);
 
-  // Step 1: Scrape the website
+  // Step 1: Scrape the website and sanitize all fields
   console.log('Scraping website...');
-  const websiteInfo = await scrapeWebsite(url);
+  const rawWebsiteInfo = await scrapeWebsite(url);
+  const websiteInfo = sanitizeWebsiteInfo(rawWebsiteInfo);
 
   // Step 2: Extract brand info using GPT
   console.log('Extracting brand information...');
@@ -84,12 +105,33 @@ Return JSON format:
     parsed = JSON.parse(response);
   } catch (error) {
     console.error('Failed to parse brand info JSON:', error);
-    // Fallback to basic info from scrape
+    // Fallback to basic info from scrape with safe validation
+    const safeName = typeof websiteInfo.title === 'string' && websiteInfo.title
+      ? websiteInfo.title.substring(0, 50)
+      : 'Unknown Company';
+      
+    let safeDomain = 'unknown.com';
+    try {
+      if (websiteInfo.url && typeof websiteInfo.url === 'string') {
+        safeDomain = new URL(websiteInfo.url).hostname;
+      }
+    } catch (e) {
+      try {
+        safeDomain = String(websiteInfo.url || '').replace(/^https?:\/\//, '').split('/')[0] || 'unknown.com';
+      } catch (err) {
+        safeDomain = 'unknown.com';
+      }
+    }
+    
+    const safeDescription = typeof websiteInfo.description === 'string' && websiteInfo.description
+      ? websiteInfo.description
+      : 'No description available';
+    
     return {
-      name: websiteInfo.title.substring(0, 50),
-      domain: new URL(websiteInfo.url).hostname,
+      name: safeName,
+      domain: safeDomain,
       industry: 'Unknown',
-      description: websiteInfo.description || 'No description available',
+      description: safeDescription,
     };
   }
   
@@ -292,11 +334,16 @@ Return JSON:
       'hsl(var(--chart-2))',
     ];
 
-    return data.platforms.map((p, idx) => ({
-      platform: String(p.platform || 'Unknown'),
-      score: Math.round(Number(p.score || 0)),
-      color: colors[idx] || 'hsl(var(--chart-1))',
-    }));
+    return data.platforms.map((p, idx) => {
+      const rawScore = Math.round(Number(p.score || 0));
+      const clampedScore = Math.max(0, Math.min(100, rawScore));
+      
+      return {
+        platform: String(p.platform || 'Unknown'),
+        score: clampedScore,
+        color: colors[idx] || 'hsl(var(--chart-1))',
+      };
+    });
   } catch (error) {
     console.error('Failed to parse platform scores JSON:', error);
     // Return reasonable default scores
@@ -331,10 +378,15 @@ async function calculateDimensionScores(websiteInfo: WebsiteInfo, brandInfo: Bra
 function calculateMentionRate(info: WebsiteInfo): number {
   let score = 50; // Base score
   
-  if (info.description && info.description.length > 50) score += 15;
-  if (info.hasFAQ) score += 10;
-  if (info.hasBlog) score += 10;
-  if (info.textContent.length > 2000) score += 15;
+  const description = typeof info.description === 'string' ? info.description : '';
+  const textContent = typeof info.textContent === 'string' ? info.textContent : '';
+  const hasFAQ = Boolean(info.hasFAQ);
+  const hasBlog = Boolean(info.hasBlog);
+  
+  if (description.length > 50) score += 15;
+  if (hasFAQ) score += 10;
+  if (hasBlog) score += 10;
+  if (textContent.length > 2000) score += 15;
   
   return Math.min(100, score);
 }
@@ -342,10 +394,15 @@ function calculateMentionRate(info: WebsiteInfo): number {
 function calculateContextQuality(info: WebsiteInfo): number {
   let score = 40;
   
-  if (info.description) score += 20;
-  if (info.headings.length > 5) score += 15;
-  if (info.hasDocumentation) score += 15;
-  if (info.metaTags['og:description']) score += 10;
+  const description = typeof info.description === 'string' && info.description ? true : false;
+  const headings = Array.isArray(info.headings) ? info.headings : [];
+  const hasDocumentation = Boolean(info.hasDocumentation);
+  const metaTags = typeof info.metaTags === 'object' && info.metaTags ? info.metaTags : {};
+  
+  if (description) score += 20;
+  if (headings.length > 5) score += 15;
+  if (hasDocumentation) score += 15;
+  if (metaTags['og:description']) score += 10;
   
   return Math.min(100, score);
 }
@@ -353,9 +410,13 @@ function calculateContextQuality(info: WebsiteInfo): number {
 function calculateSentiment(info: WebsiteInfo): number {
   let score = 70; // Default positive
   
-  if (info.hasTestimonials) score += 15;
-  if (info.hasPricing) score += 10;
-  if (info.hasAbout) score += 5;
+  const hasTestimonials = Boolean(info.hasTestimonials);
+  const hasPricing = Boolean(info.hasPricing);
+  const hasAbout = Boolean(info.hasAbout);
+  
+  if (hasTestimonials) score += 15;
+  if (hasPricing) score += 10;
+  if (hasAbout) score += 5;
   
   return Math.min(100, score);
 }
@@ -363,10 +424,15 @@ function calculateSentiment(info: WebsiteInfo): number {
 function calculateProminence(info: WebsiteInfo): number {
   let score = 45;
   
-  if (info.title.length > 10) score += 10;
-  if (info.headings.length > 8) score += 15;
-  if (info.hasComparisons) score += 20;
-  if (info.metaTags['og:title']) score += 10;
+  const title = typeof info.title === 'string' ? info.title : '';
+  const headings = Array.isArray(info.headings) ? info.headings : [];
+  const hasComparisons = Boolean(info.hasComparisons);
+  const metaTags = typeof info.metaTags === 'object' && info.metaTags ? info.metaTags : {};
+  
+  if (title.length > 10) score += 10;
+  if (headings.length > 8) score += 15;
+  if (hasComparisons) score += 20;
+  if (metaTags['og:title']) score += 10;
   
   return Math.min(100, score);
 }
@@ -374,9 +440,13 @@ function calculateProminence(info: WebsiteInfo): number {
 function calculateComparisonScore(info: WebsiteInfo): number {
   let score = 35;
   
-  if (info.hasComparisons) score += 35;
-  if (info.hasFAQ) score += 15;
-  if (info.hasPricing) score += 15;
+  const hasComparisons = Boolean(info.hasComparisons);
+  const hasFAQ = Boolean(info.hasFAQ);
+  const hasPricing = Boolean(info.hasPricing);
+  
+  if (hasComparisons) score += 35;
+  if (hasFAQ) score += 15;
+  if (hasPricing) score += 15;
   
   return Math.min(100, score);
 }
@@ -384,23 +454,27 @@ function calculateComparisonScore(info: WebsiteInfo): number {
 function calculateRecommendationScore(info: WebsiteInfo): number {
   let score = 50;
   
-  if (info.hasTestimonials) score += 20;
-  if (info.hasFAQ) score += 15;
-  if (info.hasUseCases) score += 15;
+  const hasTestimonials = Boolean(info.hasTestimonials);
+  const hasFAQ = Boolean(info.hasFAQ);
+  const hasUseCases = Boolean(info.hasUseCases);
+  
+  if (hasTestimonials) score += 20;
+  if (hasFAQ) score += 15;
+  if (hasUseCases) score += 15;
   
   return Math.min(100, score);
 }
 
 function detectGaps(websiteInfo: WebsiteInfo): AnalysisResult['gaps'] {
   return [
-    { element: 'FAQ Section', impact: 'high' as const, found: websiteInfo.hasFAQ },
-    { element: 'Comparison Pages', impact: 'high' as const, found: websiteInfo.hasComparisons },
-    { element: 'Customer Testimonials', impact: 'medium' as const, found: websiteInfo.hasTestimonials },
-    { element: 'Pricing Information', impact: 'medium' as const, found: websiteInfo.hasPricing },
-    { element: 'About Page', impact: 'low' as const, found: websiteInfo.hasAbout },
-    { element: 'Blog Content', impact: 'medium' as const, found: websiteInfo.hasBlog },
-    { element: 'Documentation', impact: 'high' as const, found: websiteInfo.hasDocumentation },
-    { element: 'Use Cases', impact: 'medium' as const, found: websiteInfo.hasUseCases },
+    { element: 'FAQ Section', impact: 'high' as const, found: Boolean(websiteInfo.hasFAQ) },
+    { element: 'Comparison Pages', impact: 'high' as const, found: Boolean(websiteInfo.hasComparisons) },
+    { element: 'Customer Testimonials', impact: 'medium' as const, found: Boolean(websiteInfo.hasTestimonials) },
+    { element: 'Pricing Information', impact: 'medium' as const, found: Boolean(websiteInfo.hasPricing) },
+    { element: 'About Page', impact: 'low' as const, found: Boolean(websiteInfo.hasAbout) },
+    { element: 'Blog Content', impact: 'medium' as const, found: Boolean(websiteInfo.hasBlog) },
+    { element: 'Documentation', impact: 'high' as const, found: Boolean(websiteInfo.hasDocumentation) },
+    { element: 'Use Cases', impact: 'medium' as const, found: Boolean(websiteInfo.hasUseCases) },
   ];
 }
 
