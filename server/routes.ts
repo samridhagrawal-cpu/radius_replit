@@ -14,41 +14,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api/history", historyRoutes);
   
   // POST /api/generate-brief - Generate AI brief for analysis results
-  app.post("/api/generate-brief", async (req, res) => {
+  app.post("/api/generate-brief", optionalAuth, async (req, res) => {
     try {
-      const { overallScore, platformScores, brandName, domain } = req.body;
+      const { z } = await import('zod');
+      
+      // Validate request body
+      const requestSchema = z.object({
+        overallScore: z.number().min(0).max(100),
+        platformScores: z.array(z.object({
+          platform: z.enum(['ChatGPT', 'Claude', 'Gemini', 'Perplexity']),
+          score: z.number().min(0).max(100),
+        })).min(1).max(10),
+        brandName: z.string().min(1).max(200),
+        domain: z.string().min(1).max(200),
+      });
 
-      if (!overallScore || !platformScores || !brandName) {
-        return res.status(400).json({ error: 'Missing required fields' });
-      }
+      const validatedData = requestSchema.parse(req.body);
+      const { overallScore, platformScores, brandName, domain } = validatedData;
+
+      // Sanitize inputs (remove newlines, control characters)
+      const sanitizedBrandName = brandName.replace(/[\n\r\t]/g, ' ').trim();
+      const sanitizedDomain = domain.replace(/[\n\r\t]/g, ' ').trim();
 
       const { OpenAI } = await import('openai');
       const openai = new OpenAI({
         apiKey: process.env.OPENAI_API_KEY,
       });
 
-      // Create context for the brief
-      const platformDetails = platformScores.map((p: any) => 
+      // Compute strongest and weakest platforms server-side
+      const sortedPlatforms = [...platformScores].sort((a, b) => b.score - a.score);
+      const strongest = sortedPlatforms[0];
+      const weakest = sortedPlatforms[sortedPlatforms.length - 1];
+
+      const platformDetails = platformScores.map(p => 
         `${p.platform}: ${p.score}/100`
       ).join(', ');
 
-      const prompt = `You are an AI visibility expert. Generate a concise, professional brief (2-3 sentences) analyzing the following brand's AI platform performance:
+      // Build prompt with computed data to prevent prompt injection
+      const prompt = `You are an AI visibility expert. Generate a concise, professional brief (2-3 sentences) analyzing the brand's AI platform performance.
 
-Brand: ${brandName} (${domain || 'N/A'})
+Brand: ${sanitizedBrandName}
+Domain: ${sanitizedDomain}
 Overall Score: ${overallScore}/100
 Platform Scores: ${platformDetails}
+Strongest Platform: ${strongest.platform} (${strongest.score}/100)
+Weakest Platform: ${weakest.platform} (${weakest.score}/100)
 
-The brief should:
-- Highlight the brand's overall performance level
-- Identify the strongest and weakest platforms
-- Provide a quick insight about what this means for the brand
+Generate a brief that:
+- Highlights the overall performance level (strong if >70, moderate if 50-70, developing if <50)
+- Mentions the strongest and weakest platforms by name
+- Provides one actionable insight
 
-Keep it professional, data-driven, and actionable. Focus on facts, not generic advice.`;
+Keep it professional and data-driven. Use only the data provided above. Do not make assumptions.`;
 
       const completion = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         messages: [
-          { role: "system", content: "You are an AI visibility analysis expert providing clear, actionable insights." },
+          { role: "system", content: "You are an AI visibility analysis expert. Provide clear, factual insights based only on the data provided." },
           { role: "user", content: prompt }
         ],
         temperature: 0.7,
@@ -60,6 +82,15 @@ Keep it professional, data-driven, and actionable. Focus on facts, not generic a
       res.json({ brief });
     } catch (error) {
       console.error('Brief generation error:', error);
+      
+      // Handle validation errors specifically
+      if (error instanceof Error && error.name === 'ZodError') {
+        return res.status(400).json({ 
+          error: 'Invalid request data',
+          details: error.message
+        });
+      }
+      
       res.status(500).json({ 
         error: 'Failed to generate brief',
         details: error instanceof Error ? error.message : 'Unknown error'
