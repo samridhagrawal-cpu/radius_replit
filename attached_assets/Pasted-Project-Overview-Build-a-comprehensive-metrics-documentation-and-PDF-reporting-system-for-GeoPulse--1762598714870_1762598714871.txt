@@ -1,0 +1,753 @@
+Project Overview
+Build a comprehensive metrics documentation and PDF reporting system for GeoPulse (a GEO SaaS platform) with black/white minimalist design. This includes interactive info buttons for every metric, competitor discovery methodology, LLM accuracy verification, and "Open in ChatGPT" functionality.
+
+🎯 CORE FEATURES TO BUILD
+1. Interactive Metrics Documentation System
+Create a React component system with:
+A. Info Button Component for Every Metric
+
+Small info icon (ℹ️) next to every metric displayed
+On hover: show tooltip with brief definition
+On click: expand full modal with comprehensive explanation
+Each metric needs: name, description, calculation method, scoring anchors, examples
+
+B. Three Main Scoring Factors (with info buttons for each):
+typescript// AIC - Answerability & Intent Coverage (40% weight)
+const AIC_METRICS = {
+  s1: "Intent Coverage - Does content address full spectrum of user intents?",
+  s2: "Directness - How quickly does content get to the answer?",
+  s3: "Completeness & Depth - Comprehensive coverage with supporting details",
+  s4: "Consistency & Recency - Up-to-date and consistent across pages",
+  s5: "Conversational Readiness - Suited for AI-driven conversations"
+};
+
+// CES - Credibility, Evidence & Safety (35% weight)
+const CES_METRICS = {
+  s1: "Evidence Density - Citations, statistics, verifiable facts",
+  s2: "Author & Organization Transparency - Credentials and contact info",
+  s3: "Experience & Originality - First-hand expertise and unique insights",
+  s4: "Safety & Disclaimers - Appropriate warnings and limitations",
+  s5: "Freshness & Revision History - Current and regularly updated"
+};
+
+// MTS - Machine-Readability & Technical Signals (25% weight)
+const MTS_METRICS = {
+  s1: "Structure & Semantics - HTML structure for machine understanding",
+  s2: "Schema & Metadata - Structured data markup (Schema.org, JSON-LD)",
+  s3: "Entity Clarity - Clear definition of people, places, products",
+  s4: "Crawlability & Coverage - Easy AI access to content",
+  s5: "Reusability - Clean HTML, API availability, clear licensing"
+};
+Scoring Anchors for All Metrics:
+
+0-2: Critical (Missing core information)
+2-4: Weak (Partial coverage with gaps)
+4-6: Adequate (Covers basics)
+6-8: Strong (Comprehensive coverage)
+8-10: Outstanding (Industry-leading)
+
+
+2. Calculation Methodology Section
+Create a dedicated "How We Calculate Your Score" page/section:
+A. Overall Score Calculation:
+Final GEO Score = (AIC × 0.40) + (CES × 0.35) + (MTS × 0.25)
+
+Where each factor score = Average of its 5 sub-scores (s1-s5)
+Example: AIC = (s1 + s2 + s3 + s4 + s5) / 5
+B. Multi-Platform Aggregation:
+Overall Platform Score = Average across all tested AI platforms:
+- ChatGPT (GPT-4)
+- Claude (Sonnet 4)
+- Google Gemini
+- Perplexity AI
+- SearchGPT
+- Bing Chat
+C. Confidence Scoring:
+Confidence (0-1) = Based on:
+- Data completeness (50%)
+- Consistency across platforms (30%)
+- Evidence quality (20%)
+
+3. Competitor Discovery & Comparison System
+A. "How We Find Your Competitors" Section:
+Create an expandable section with step-by-step methodology:
+typescriptconst COMPETITOR_DISCOVERY_STEPS = [
+  {
+    step: 1,
+    title: "Industry Keyword Extraction",
+    description: "We analyze your website content to extract 50-100 core industry keywords",
+    method: "NLP analysis + manual verification",
+    icon: "🔍"
+  },
+  {
+    step: 2,
+    title: "AI Response Mining",
+    description: "We query all 6 AI platforms with these keywords and track which brands appear",
+    method: "Automated API queries across ChatGPT, Claude, Gemini, Perplexity, SearchGPT, Bing",
+    icon: "🤖"
+  },
+  {
+    step: 3,
+    title: "Semantic Similarity Analysis",
+    description: "Using embeddings, we find websites with similar content and target audience",
+    method: "Vector similarity (cosine) using OpenAI embeddings",
+    icon: "🧠"
+  },
+  {
+    step: 4,
+    title: "Citation Pattern Analysis",
+    description: "We track which brands are cited alongside yours across platforms",
+    method: "Co-occurrence matrix analysis",
+    icon: "📊"
+  },
+  {
+    step: 5,
+    title: "Manual Verification",
+    description: "Our system verifies competitors are genuine alternatives, filters out false positives",
+    method: "Business model matching + category validation",
+    icon: "✓"
+  }
+];
+B. "The 7 Critical Consumer Questions" Framework:
+Display these prominently in the competitor section:
+typescriptconst CRITICAL_CONSUMER_QUESTIONS = [
+  {
+    category: "Discovery",
+    weight: "30%",
+    questions: [
+      "What are the top [category] companies?",
+      "Who are the leading [industry] providers in 2025?"
+    ],
+    metric: "Brand mention frequency across AI platforms"
+  },
+  {
+    category: "Comparison",
+    weight: "35%",
+    questions: [
+      "[Your Brand] vs [Competitor] - which is better?",
+      "Compare [Product A] and [Product B]",
+      "[Competitor] alternatives?"
+    ],
+    metric: "Head-to-head win rate in comparative queries"
+  },
+  {
+    category: "Utility",
+    weight: "35%",
+    questions: [
+      "How to solve [problem] using [category]?",
+      "Best practices for [use case]"
+    ],
+    metric: "Solution depth and implementation clarity"
+  }
+];
+C. Comparison Dimensions:
+typescriptconst COMPARISON_FRAMEWORK = {
+  discovery: {
+    name: "Discovery Score",
+    weight: 0.30,
+    description: "How often your brand appears vs competitors",
+    metrics: ["Mention frequency", "Citation rate", "Ranking position"]
+  },
+  comparison: {
+    name: "Comparison Score",
+    weight: 0.35,
+    description: "Win rate in head-to-head comparisons",
+    metrics: ["Head-to-head wins", "Feature completeness", "Sentiment score"]
+  },
+  utility: {
+    name: "Utility Score",
+    weight: 0.35,
+    description: "How helpful your content is for solving problems",
+    metrics: ["Solution depth", "Actionability", "Use case coverage"]
+  }
+};
+
+4. LLM Accuracy Verification System
+A. Create a "Response Accuracy Check" Feature:
+typescript// This component verifies if AI platforms are giving correct answers about the brand
+
+interface AccuracyCheck {
+  platform: string;
+  test_queries: string[];
+  expected_facts: string[];
+  actual_response: string;
+  accuracy_score: number; // 0-100
+  hallucinations: string[];
+  missing_info: string[];
+}
+
+const ACCURACY_TESTS = [
+  {
+    query: "What does [Company Name] do?",
+    expected_facts: ["core product/service", "founding year", "headquarters"],
+    critical: true
+  },
+  {
+    query: "Who are [Company Name]'s main competitors?",
+    expected_facts: ["listed competitors from company site"],
+    critical: true
+  },
+  {
+    query: "[Company Name] pricing",
+    expected_facts: ["pricing tiers", "free trial info"],
+    critical: false
+  },
+  {
+    query: "[Company Name] customer reviews",
+    expected_facts: ["review sources", "general sentiment"],
+    critical: false
+  }
+];
+B. Hallucination Detection:
+
+Flag statements in AI responses that contradict source content
+Highlight missing critical information
+Show accuracy percentage per platform
+Display in report with red/yellow/green indicators
+
+C. Visual Display:
+✓ ChatGPT: 95% accurate (1 minor error)
+✓ Claude: 98% accurate (all facts correct)
+⚠ Gemini: 82% accurate (hallucinated founding year)
+✗ Perplexity: 67% accurate (mixed up competitor info)
+
+5. "Open in ChatGPT" Feature
+A. Create Interactive Testing Buttons:
+For each metric and competitor comparison, add a button:
+typescriptconst OpenInChatGPTButton = ({ query, context }) => {
+  const generateChatGPTUrl = () => {
+    // Pre-populate ChatGPT with the query
+    const baseUrl = "https://chat.openai.com/";
+    const prompt = encodeURIComponent(
+      `${query}\n\nContext: Analyzing ${context.brandName} for GEO optimization.`
+    );
+    return `${baseUrl}?q=${prompt}`;
+  };
+
+  return (
+    <button 
+      onClick={() => window.open(generateChatGPTUrl(), '_blank')}
+      className="open-in-chatgpt"
+    >
+      Test in ChatGPT →
+    </button>
+  );
+};
+B. Pre-Configured Test Queries:
+typescriptconst TEST_QUERIES = {
+  discovery: [
+    `What are the top ${industry} companies in 2025?`,
+    `Leading ${category} providers?`,
+    `Best ${product_type} solutions?`
+  ],
+  comparison: [
+    `${brandName} vs ${competitor1}`,
+    `Compare ${brandName} and ${competitor2}`,
+    `${brandName} alternatives`
+  ],
+  utility: [
+    `How to ${use_case} using ${brandName}?`,
+    `${brandName} best practices`,
+    `${brandName} implementation guide`
+  ],
+  verification: [
+    `What does ${brandName} do?`,
+    `${brandName} pricing and features`,
+    `${brandName} customer reviews`
+  ]
+};
+C. Support Multiple Platforms:
+
+"Open in ChatGPT"
+"Open in Claude" (claude.ai)
+"Test in Perplexity"
+"Search in Google Gemini"
+
+
+6. PDF Report Generation
+A. Install Required Packages:
+bashnpm install @react-pdf/renderer jspdf html2canvas
+B. PDF Structure (Professional Layout):
+typescriptimport { Document, Page, Text, View, StyleSheet, PDFDownloadLink, Image } from '@react-pdf/renderer';
+
+const styles = StyleSheet.create({
+  page: {
+    backgroundColor: '#FFFFFF',
+    padding: 40,
+    fontFamily: 'Helvetica'
+  },
+  coverPage: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: '100%'
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    color: '#000000'
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#666666',
+    marginBottom: 40
+  },
+  section: {
+    margin: 10,
+    padding: 15,
+    borderBottom: '1px solid #E5E5E5'
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: '#000000'
+  },
+  text: {
+    fontSize: 11,
+    lineHeight: 1.6,
+    color: '#333333'
+  },
+  scoreCard: {
+    backgroundColor: '#F5F5F5',
+    padding: 20,
+    marginVertical: 10,
+    borderRadius: 8
+  },
+  table: {
+    display: 'table',
+    width: '100%',
+    marginVertical: 10
+  },
+  tableRow: {
+    flexDirection: 'row',
+    borderBottom: '1px solid #E5E5E5'
+  },
+  tableCell: {
+    padding: 8,
+    fontSize: 10
+  },
+  footer: {
+    position: 'absolute',
+    bottom: 30,
+    left: 40,
+    right: 40,
+    textAlign: 'center',
+    fontSize: 9,
+    color: '#999999'
+  }
+});
+
+const GeoPulseReport = ({ data }) => (
+  <Document>
+    {/* Cover Page */}
+    <Page size="A4" style={styles.page}>
+      <View style={styles.coverPage}>
+        <Text style={styles.title}>GeoPulse GEO Analysis Report</Text>
+        <Text style={styles.subtitle}>{data.websiteUrl}</Text>
+        <Text style={styles.text}>Generated: {new Date().toLocaleDateString()}</Text>
+        <View style={styles.scoreCard}>
+          <Text style={{fontSize: 48, textAlign: 'center'}}>{data.overallScore}/10</Text>
+          <Text style={{textAlign: 'center', marginTop: 10}}>Overall GEO Score</Text>
+        </View>
+      </View>
+    </Page>
+
+    {/* Executive Summary */}
+    <Page size="A4" style={styles.page}>
+      <Text style={styles.sectionTitle}>Executive Summary</Text>
+      <View style={styles.section}>
+        <Text style={styles.text}>{data.executiveSummary}</Text>
+      </View>
+
+      <Text style={styles.sectionTitle}>Key Metrics</Text>
+      <View style={styles.table}>
+        <View style={styles.tableRow}>
+          <Text style={[styles.tableCell, {fontWeight: 'bold', flex: 2}]}>Metric</Text>
+          <Text style={[styles.tableCell, {fontWeight: 'bold', flex: 1}]}>Score</Text>
+          <Text style={[styles.tableCell, {fontWeight: 'bold', flex: 1}]}>Weight</Text>
+        </View>
+        <View style={styles.tableRow}>
+          <Text style={[styles.tableCell, {flex: 2}]}>Answerability & Intent Coverage (AIC)</Text>
+          <Text style={[styles.tableCell, {flex: 1}]}>{data.aic}/10</Text>
+          <Text style={[styles.tableCell, {flex: 1}]}>40%</Text>
+        </View>
+        <View style={styles.tableRow}>
+          <Text style={[styles.tableCell, {flex: 2}]}>Credibility, Evidence & Safety (CES)</Text>
+          <Text style={[styles.tableCell, {flex: 1}]}>{data.ces}/10</Text>
+          <Text style={[styles.tableCell, {flex: 1}]}>35%</Text>
+        </View>
+        <View style={styles.tableRow}>
+          <Text style={[styles.tableCell, {flex: 2}]}>Machine-Readability & Technical Signals (MTS)</Text>
+          <Text style={[styles.tableCell, {flex: 1}]}>{data.mts}/10</Text>
+          <Text style={[styles.tableCell, {flex: 1}]}>25%</Text>
+        </View>
+      </View>
+    </Page>
+
+    {/* Platform Analysis */}
+    <Page size="A4" style={styles.page}>
+      <Text style={styles.sectionTitle}>AI Platform Visibility Analysis</Text>
+      {data.platforms.map((platform, idx) => (
+        <View key={idx} style={styles.section}>
+          <Text style={{fontSize: 14, fontWeight: 'bold', marginBottom: 5}}>
+            {platform.name}: {platform.score}/10
+          </Text>
+          <Text style={styles.text}>{platform.analysis}</Text>
+        </View>
+      ))}
+    </Page>
+
+    {/* Competitor Analysis */}
+    <Page size="A4" style={styles.page}>
+      <Text style={styles.sectionTitle}>Competitive Landscape</Text>
+      <Text style={styles.text}>Competitors identified: {data.competitors.length}</Text>
+      <View style={styles.table}>
+        <View style={styles.tableRow}>
+          <Text style={[styles.tableCell, {fontWeight: 'bold', flex: 2}]}>Competitor</Text>
+          <Text style={[styles.tableCell, {fontWeight: 'bold', flex: 1}]}>Discovery</Text>
+          <Text style={[styles.tableCell, {fontWeight: 'bold', flex: 1}]}>Comparison</Text>
+          <Text style={[styles.tableCell, {fontWeight: 'bold', flex: 1}]}>Utility</Text>
+        </View>
+        {data.competitors.map((comp, idx) => (
+          <View key={idx} style={styles.tableRow}>
+            <Text style={[styles.tableCell, {flex: 2}]}>{comp.name}</Text>
+            <Text style={[styles.tableCell, {flex: 1}]}>{comp.discovery}</Text>
+            <Text style={[styles.tableCell, {flex: 1}]}>{comp.comparison}</Text>
+            <Text style={[styles.tableCell, {flex: 1}]}>{comp.utility}</Text>
+          </View>
+        ))}
+      </View>
+    </Page>
+
+    {/* Recommendations */}
+    <Page size="A4" style={styles.page}>
+      <Text style={styles.sectionTitle}>Actionable Recommendations</Text>
+      
+      <Text style={{fontSize: 14, fontWeight: 'bold', marginTop: 15}}>Quick Wins (High Impact, Low Effort)</Text>
+      {data.quickWins.map((action, idx) => (
+        <View key={idx} style={styles.section}>
+          <Text style={{fontSize: 12, fontWeight: 'bold'}}>{idx + 1}. {action.title}</Text>
+          <Text style={styles.text}>{action.description}</Text>
+          <Text style={{fontSize: 9, color: '#666666', marginTop: 5}}>
+            Impact: {action.impact} | Effort: {action.effort} | Owner: {action.owner}
+          </Text>
+        </View>
+      ))}
+
+      <Text style={{fontSize: 14, fontWeight: 'bold', marginTop: 20}}>Strategic Bets (High Impact, Higher Effort)</Text>
+      {data.strategicBets.map((action, idx) => (
+        <View key={idx} style={styles.section}>
+          <Text style={{fontSize: 12, fontWeight: 'bold'}}>{idx + 1}. {action.title}</Text>
+          <Text style={styles.text}>{action.description}</Text>
+          <Text style={{fontSize: 9, color: '#666666', marginTop: 5}}>
+            Impact: {action.impact} | Effort: {action.effort} | Owner: {action.owner}
+          </Text>
+        </View>
+      ))}
+    </Page>
+
+    {/* Accuracy Verification */}
+    <Page size="A4" style={styles.page}>
+      <Text style={styles.sectionTitle}>LLM Accuracy Verification</Text>
+      <Text style={styles.text}>
+        We tested how accurately each AI platform represents your brand:
+      </Text>
+      {data.accuracyChecks.map((check, idx) => (
+        <View key={idx} style={styles.section}>
+          <Text style={{fontSize: 12, fontWeight: 'bold'}}>
+            {check.platform}: {check.accuracy}% accurate
+          </Text>
+          {check.hallucinations.length > 0 && (
+            <Text style={{fontSize: 10, color: '#CC0000', marginTop: 5}}>
+              ⚠ Hallucinations detected: {check.hallucinations.join(', ')}
+            </Text>
+          )}
+          {check.missingInfo.length > 0 && (
+            <Text style={{fontSize: 10, color: '#666666', marginTop: 5}}>
+              Missing: {check.missingInfo.join(', ')}
+            </Text>
+          )}
+        </View>
+      ))}
+    </Page>
+
+    {/* Footer on every page */}
+    <Text style={styles.footer} fixed>
+      Generated by GeoPulse | {data.websiteUrl} | Page {'{pageNumber}'} of {'{totalPages}'}
+    </Text>
+  </Document>
+);
+C. PDF Download Button Component:
+typescriptconst PDFExportButton = ({ reportData }) => (
+  <PDFDownloadLink
+    document={<GeoPulseReport data={reportData} />}
+    fileName={`geopulse-report-${reportData.domain}-${Date.now()}.pdf`}
+    className="pdf-download-button"
+  >
+    {({ blob, url, loading, error }) =>
+      loading ? 'Generating PDF...' : 'Download PDF Report'
+    }
+  </PDFDownloadLink>
+);
+
+7. UI Component Structure
+/components
+  /MetricsDocumentation
+    InfoButton.tsx              // Reusable info icon with tooltip/modal
+    MetricCard.tsx              // Display individual metric with info button
+    CalculationMethodology.tsx  // How we calculate scores
+    ScoringAnchors.tsx          // 0-10 scale explanation
+    
+  /CompetitorAnalysis
+    DiscoveryMethodology.tsx    // How we find competitors
+    CriticalQuestions.tsx       // The 7 consumer questions
+    ComparisonFramework.tsx     // Discovery/Comparison/Utility breakdown
+    CompetitorMatrix.tsx        // Visual comparison table
+    
+  /AccuracyVerification
+    LLMAccuracyChecker.tsx      // Accuracy scores per platform
+    HallucinationDetector.tsx   // Red flags and errors
+    FactVerification.tsx        // Expected vs actual facts
+    
+  /TestingFeatures
+    OpenInChatGPT.tsx           // Button to open query in ChatGPT
+    OpenInClaude.tsx            // Button for Claude
+    OpenInPerplexity.tsx        // Button for Perplexity
+    TestQueryGenerator.tsx      // Generate test queries
+    
+  /PDFExport
+    ReportDocument.tsx          // Main PDF structure
+    CoverPage.tsx               // Branded cover
+    ExecutiveSummary.tsx        // Summary page
+    PlatformAnalysis.tsx        // Platform scores page
+    CompetitorPage.tsx          // Competitor comparison page
+    RecommendationsPage.tsx     // Action items page
+    AccuracyPage.tsx            // LLM verification page
+    
+  /ReportViewer
+    ReportDashboard.tsx         // Main report viewer
+    TableOfContents.tsx         // Navigation
+    SectionNavigator.tsx        // Jump to sections
+    ExportControls.tsx          // PDF/CSV/JSON export options
+
+8. Design System (Black & White Minimalist)
+css/* GeoPulse Color Palette */
+:root {
+  --primary: #000000;
+  --background: #FFFFFF;
+  --accent: #F5F5F5;
+  --border: #E5E5E5;
+  --text-primary: #000000;
+  --text-secondary: #666666;
+  --text-tertiary: #999999;
+  --success: #000000;
+  --warning: #666666;
+  --error: #333333;
+}
+
+/* Typography */
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+  color: var(--text-primary);
+  background: var(--background);
+}
+
+/* Info Button Styling */
+.info-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid var(--text-secondary);
+  background: transparent;
+  cursor: pointer;
+  margin-left: 6px;
+  transition: all 0.2s ease;
+}
+
+.info-button:hover {
+  background: var(--text-primary);
+  border-color: var(--text-primary);
+  color: white;
+  transform: scale(1.1);
+}
+
+/* Metric Card */
+.metric-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 16px;
+  transition: box-shadow 0.2s ease;
+}
+
+.metric-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Score Display */
+.score-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 3px solid var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+/* "Open in ChatGPT" Button */
+.open-in-chatgpt {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.open-in-chatgpt:hover {
+  background: var(--text-secondary);
+  transform: translateY(-2px);
+}
+
+/* PDF Download Button */
+.pdf-download-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.pdf-download-button:hover {
+  background: var(--text-secondary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Competitor Table */
+.competitor-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.competitor-table th {
+  background: var(--accent);
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  border-bottom: 1px solid var(--border);
+}
+
+.competitor-table td {
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.competitor-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Accuracy Indicator */
+.accuracy-high { color: var(--primary); }
+.accuracy-medium { color: var(--text-secondary); }
+.accuracy-low { color: var(--error); }
+
+9. Implementation Instructions for Replit
+Step 1: Set up the project structure
+bash# Create all necessary directories
+mkdir -p components/{MetricsDocumentation,CompetitorAnalysis,AccuracyVerification,TestingFeatures,PDFExport,ReportViewer}
+mkdir -p services
+mkdir -p styles
+Step 2: Install dependencies
+bashnpm install @react-pdf/renderer jspdf html2canvas lucide-react recharts
+Step 3: Create core data structures
+
+Create constants/metricsDefinitions.ts with all metric definitions
+Create constants/scoringAnchors.ts with 0-10 scale anchors
+Create constants/competitorQueries.ts with the 7 critical questions
+Create types/geo-analysis.ts with TypeScript interfaces
+
+Step 4: Build components in this order
+
+InfoButton component (most reusable)
+MetricCard component
+CalculationMethodology page
+CompetitorAnalysis section
+AccuracyVerification section
+OpenInChatGPT buttons
+PDF Report structure
+Wire everything together in ReportDashboard
+
+Step 5: Integration with existing scoring system
+
+Import the existing schemas from the provided code
+Map AIC/CES/MTS data to the new UI components
+Ensure all sub-scores (s1-s5) display with info buttons
+Connect to the synthesis schema for final score
+
+
+10. Key Features Summary
+✅ Info buttons on every metric with hover tooltips and expandable modals
+✅ Calculation methodology page explaining weighted scoring (40/35/25)
+✅ Competitor discovery section with 5-step methodology
+✅ 7 critical consumer questions framework (Discovery/Comparison/Utility)
+✅ LLM accuracy verification with hallucination detection
+✅ "Open in ChatGPT" buttons with pre-populated queries
+✅ "Test in Claude", "Test in Perplexity" buttons
+✅ PDF export with professional formatting, cover page, and charts
+✅ Black & white minimalist design throughout
+✅ Responsive and mobile-friendly
+✅ Accessible with proper ARIA labels
+
+11. Testing Checklist
+
+ All info buttons display correct metric definitions
+ Score calculations match the formulas (weighted averages)
+ Competitor discovery methodology is clearly explained
+ The 7 consumer questions are prominent
+ Accuracy checks show per-platform results
+ "Open in ChatGPT" buttons work with pre-filled queries
+ PDF generates correctly with all sections
+ PDF includes charts as images
+ Design is consistent (black/white theme)
+ Mobile responsive on all pages
+ Loading states during PDF generation
+ Error handling for missing data
+
+
+🚀 FINAL NOTES
+This system should be:
+
+Educational: Help users understand GEO metrics deeply
+Transparent: Show exactly how scores are calculated
+Actionable: Enable users to test queries themselves
+Professional: PDF reports suitable for stakeholder presentations
+Fast: Generate reports in <30 seconds
+Accurate: Verify LLM responses against ground truth
+
+Build this as a modular, maintainable system that can evolve as GeoPulse grows. Focus on clarity, performance, and user experience. The goal is to win the hackathon by demonstrating real, tangible value that no other GEO platform provides.
