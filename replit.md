@@ -104,3 +104,30 @@ World-class features section showcasing Radius's four key capabilities with data
 - E2E tested with all 4 cards, visualizations, and interactions verified
 - Full design system compliance (no text-primary except hero, semantic colors throughout)
 - Production-ready with smooth animations and premium feel
+
+### AI Platform Logo Ribbon - PRODUCTION READY ✅
+Infinite horizontal scroll ribbon showcasing AI platform logos (ChatGPT, Claude, Gemini, Perplexity) positioned between HeroSection and VideoSection.
+
+**Design Features:**
+- **Infinite Scroll Animation**: Smooth 30-second horizontal loop (right to left)
+- **Minimal Logos**: Simple geometric SVG shapes (circle, square, diamond, triangle)
+- **Faded Appearance**: Grayscale with 40% opacity, 60% on hover
+- **Edge Gradients**: Smooth fade-in/out effect on left and right edges
+- **Strategic Placement**: Positioned between Hero stats and Video section
+
+**Technical Details:**
+- Component: `client/src/components/LogoRibbon.tsx`
+- Location: Landing page only, between HeroSection and VideoSection
+- Animation: CSS keyframes `scroll-logos` with 30s linear infinite loop
+- Logos: 4 unique logos duplicated 3x (12 total) for seamless looping
+- Sizing: w-16 h-16 (mobile) → w-20 h-20 (desktop)
+- Spacing: mx-8 (mobile) → mx-12 (desktop) between logos
+- Colors: Semantic tokens (text-muted-foreground, bg-background)
+- Performance: GPU-accelerated with will-change, backface-visibility
+- Accessibility: Respects prefers-reduced-motion, pause on hover
+
+**Quality Assurance:**
+- Architect-approved with PASS verdict
+- Visual verification confirms logos visible, faded, and animating
+- Design system compliant (semantic tokens only, no hardcoded colors)
+- Production-ready with performant infinite scroll and accessibility support
