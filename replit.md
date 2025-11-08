@@ -63,6 +63,7 @@ Preferred communication style: Simple, everyday language.
 routes.ts → analyzer.ts → {
   scraper.ts (cheerio-based web scraping)
   openai.ts (GPT API wrapper)
+  tracxn.ts (market intelligence API)
 }
 ```
 
@@ -85,7 +86,10 @@ routes.ts → analyzer.ts → {
 **AI Workflow**:
 1. **Website Scraping**: Cheerio extracts content, metadata, and page structure
 2. **Brand Extraction**: GPT analyzes scraped content to identify brand name, industry, description
-3. **Competitor Discovery**: GPT-powered analysis to find real competitors (not hardcoded)
+3. **Competitor Discovery**: 
+   - Tracxn API fetches real market competitors with funding, employee count, and company data
+   - GPT enriches Tracxn data with competitive analysis and strengths
+   - Fallback to GPT-only discovery if Tracxn API is unavailable
 4. **Platform Visibility Analysis**: GPT simulates how each AI platform would rank/mention the brand
 5. **Dimension Scoring**: GPT evaluates across 6 dimensions (mention rate, context quality, sentiment, etc.)
 6. **Recommendations Generation**: GPT provides actionable improvement suggestions
@@ -113,7 +117,7 @@ analyzeWithGPT(prompt, { systemPrompt?, jsonMode?, temperature? })
   overallScore: number (0-100)
   platformScores: Array<{ platform, score, color }>
   dimensionScores: Array<{ dimension, score, fullMark }>
-  competitors: Array<{ rank, name, domain, score, marketOverlap, strengths, isCurrentBrand? }>
+  competitors: Array<{ rank, name, domain, score, marketOverlap, strengths, isCurrentBrand?, funding?, employees?, founded?, description? }>
   gaps: Array<{ element, impact, found }>
   recommendations: Array<{ title, description, priority, category, actionItems, estimatedImpact }>
 }
@@ -156,6 +160,13 @@ analyzeWithGPT(prompt, { systemPrompt?, jsonMode?, temperature? })
 - **Model**: GPT-4o-mini for cost-effectiveness
 - **Critical**: System cannot function without valid API key
 
+**Tracxn API**:
+- **Purpose**: Real-world competitor and market intelligence data
+- **Authentication**: API key via `TRACXN_API_KEY` environment variable
+- **Provides**: Company funding, employee counts, founding years, descriptions, competitive landscape
+- **Graceful Degradation**: System falls back to GPT-only analysis if Tracxn is unavailable
+- **Integration**: Enriches competitor discovery with real market data
+
 ### Third-Party Libraries
 
 **UI Framework**:
@@ -196,5 +207,6 @@ analyzeWithGPT(prompt, { systemPrompt?, jsonMode?, temperature? })
 
 ```
 OPENAI_API_KEY=<required>
+TRACXN_API_KEY=<optional, enhances competitor data with market intelligence>
 DATABASE_URL=<optional, for future database integration>
 ```
