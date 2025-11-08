@@ -1,4 +1,4 @@
-import { Clock, Target, Sparkles } from "lucide-react";
+
 
 export default function VideoSection() {
   return (
@@ -42,24 +42,6 @@ export default function VideoSection() {
                   data-testid="iframe-demo-video"
                 />
               </div>
-            </div>
-          </div>
-
-          {/* Video Stats/Info Below */}
-          <div className="flex flex-wrap justify-center items-center gap-6 md:gap-8 mt-6 text-xs md:text-sm text-muted-foreground">
-            <div className="flex items-center gap-2" data-testid="stat-demo-duration">
-              <Clock className="w-4 h-4" />
-              <span className="font-medium">2-minute demo</span>
-            </div>
-            <div className="w-px h-4 bg-border hidden sm:block" />
-            <div className="flex items-center gap-2" data-testid="stat-real-results">
-              <Target className="w-4 h-4" />
-              <span className="font-medium">Real results</span>
-            </div>
-            <div className="w-px h-4 bg-border hidden sm:block" />
-            <div className="flex items-center gap-2" data-testid="stat-no-fluff">
-              <Sparkles className="w-4 h-4" />
-              <span className="font-medium">No fluff</span>
             </div>
           </div>
         </div>
