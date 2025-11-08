@@ -1,0 +1,709 @@
+
+🔥 LEGENDARY IMPLEMENTATION: Self-Typing AI Command Bar with Crazy Animations
+🎯 THE VISION: NEXT-LEVEL INTERACTIVE EXPERIENCE
+Create a command bar that types itself, deletes itself, and cycles through mind-blowing prompts with buttery-smooth animations. This will be the most captivating element on your landing page—users won't be able to look away.
+What it looks like:
+[Logo: Radius]                                                      [Avatar: Somu]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+                  Increase your visibility
+                  across AI platforms
+
+        ┌────────────────────────────────────────────────────┐
+        │  › analyze radius.io visibility_                   │
+        │                                                     │
+        │  💡 AI-powered insights • 30 sec analysis • Free   │
+        └────────────────────────────────────────────────────┘
+                              ↑
+                    Types itself, deletes, cycles
+
+💻 COMPLETE ULTRA-PREMIUM IMPLEMENTATION
+Component: SelfTypingCommandBar.tsx
+typescriptimport React, { useState, useEffect, useRef } from 'react';
+
+// 🎯 EPIC PROMPTS - Carefully crafted for maximum impact
+const EPIC_PROMPTS = [
+  {
+    text: 'analyze radius.io visibility across all AI platforms',
+    category: 'Analysis',
+    icon: '🔍',
+    color: 'from-blue-500 to-cyan-500',
+  },
+  {
+    text: 'why is my brand invisible to ChatGPT?',
+    category: 'Insight',
+    icon: '💡',
+    color: 'from-purple-500 to-pink-500',
+  },
+  {
+    text: 'compare my domain vs top 5 competitors',
+    category: 'Competition',
+    icon: '⚔️',
+    color: 'from-orange-500 to-red-500',
+  },
+  {
+    text: 'generate comprehensive GEO report for somu.io',
+    category: 'Report',
+    icon: '📊',
+    color: 'from-green-500 to-emerald-500',
+  },
+  {
+    text: 'how to rank #1 in Perplexity recommendations?',
+    category: 'Strategy',
+    icon: '🎯',
+    color: 'from-indigo-500 to-blue-500',
+  },
+  {
+    text: 'show me what Claude says about my startup',
+    category: 'Discovery',
+    icon: '🔎',
+    color: 'from-pink-500 to-rose-500',
+  },
+  {
+    text: 'optimize my content for Gemini visibility',
+    category: 'Optimization',
+    icon: '⚡',
+    color: 'from-yellow-500 to-orange-500',
+  },
+  {
+    text: 'find gaps in my AI presence strategy',
+    category: 'Audit',
+    icon: '🎪',
+    color: 'from-teal-500 to-cyan-500',
+  },
+  {
+    text: 'why did my mention rate drop 40% last month?',
+    category: 'Analytics',
+    icon: '📉',
+    color: 'from-red-500 to-pink-500',
+  },
+  {
+    text: 'discover who my real AI-era competitors are',
+    category: 'Intelligence',
+    icon: '🕵️',
+    color: 'from-slate-500 to-gray-600',
+  },
+];
+
+interface TypewriterState {
+  displayText: string;
+  currentPromptIndex: number;
+  isTyping: boolean;
+  isDeleting: boolean;
+  isPaused: boolean;
+}
+
+export const SelfTypingCommandBar: React.FC<{
+  onManualSubmit?: (query: string) => void;
+}> = ({ onManualSubmit }) => {
+  const [state, setState] = useState<TypewriterState>({
+    displayText: '',
+    currentPromptIndex: 0,
+    isTyping: true,
+    isDeleting: false,
+    isPaused: false,
+  });
+
+  const [isHovered, setIsHovered] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+  const [manualInput, setManualInput] = useState('');
+  const [showCursor, setShowCursor] = useState(true);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const currentPrompt = EPIC_PROMPTS[state.currentPromptIndex];
+
+  // 🎨 Typewriter Effect - The Magic Happens Here
+  useEffect(() => {
+    // Pause animation when user interacts
+    if (isHovered || isFocused || manualInput) {
+      return;
+    }
+
+    const typingSpeed = 80; // ms per character
+    const deletingSpeed = 40; // faster deletion
+    const pauseAfterTyping = 2500; // pause to read
+    const pauseAfterDeleting = 500; // brief pause before next
+
+    const timer = setTimeout(() => {
+      const targetText = currentPrompt.text;
+
+      // STATE: Typing
+      if (state.isTyping && !state.isPaused) {
+        if (state.displayText.length < targetText.length) {
+          setState((prev) => ({
+            ...prev,
+            displayText: targetText.slice(0, prev.displayText.length + 1),
+          }));
+        } else {
+          // Finished typing - pause
+          setState((prev) => ({
+            ...prev,
+            isTyping: false,
+            isPaused: true,
+          }));
+        }
+      }
+      // STATE: Paused after typing
+      else if (state.isPaused && !state.isTyping && !state.isDeleting) {
+        setState((prev) => ({
+          ...prev,
+          isPaused: false,
+          isDeleting: true,
+        }));
+      }
+      // STATE: Deleting
+      else if (state.isDeleting && !state.isPaused) {
+        if (state.displayText.length > 0) {
+          setState((prev) => ({
+            ...prev,
+            displayText: prev.displayText.slice(0, -1),
+          }));
+        } else {
+          // Finished deleting - move to next prompt
+          setState((prev) => ({
+            ...prev,
+            isDeleting: false,
+            isPaused: true,
+            currentPromptIndex: (prev.currentPromptIndex + 1) % EPIC_PROMPTS.length,
+          }));
+        }
+      }
+      // STATE: Paused after deleting
+      else if (state.isPaused && state.isDeleting) {
+        setState((prev) => ({
+          ...prev,
+          isPaused: false,
+          isDeleting: false,
+          isTyping: true,
+        }));
+      }
+    }, state.isTyping ? typingSpeed : state.isDeleting ? deletingSpeed : state.isPaused && !state.isDeleting ? pauseAfterTyping : pauseAfterDeleting);
+
+    return () => clearTimeout(timer);
+  }, [state, currentPrompt, isHovered, isFocused, manualInput]);
+
+  // Cursor blink effect
+  useEffect(() => {
+    const cursorTimer = setInterval(() => {
+      setShowCursor((prev) => !prev);
+    }, 530);
+    return () => clearInterval(cursorTimer);
+  }, []);
+
+  // Keyboard shortcut (⌘K / Ctrl+K)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        inputRef.current?.focus();
+      }
+      // ESC to blur
+      if (e.key === 'Escape') {
+        inputRef.current?.blur();
+        setManualInput('');
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const handleManualSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (manualInput.trim()) {
+      onManualSubmit?.(manualInput);
+      setManualInput('');
+    }
+  };
+
+  const handleFocus = () => {
+    setIsFocused(true);
+  };
+
+  const handleBlur = () => {
+    setIsFocused(false);
+    if (!manualInput) {
+      // Resume animation
+    }
+  };
+
+  return (
+    <div className="w-full max-w-5xl mx-auto px-4">
+      {/* Main Command Bar */}
+      <form onSubmit={handleManualSubmit}>
+        <div
+          className="relative group"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
+          {/* Gradient Border Effect */}
+          <div
+            className={`absolute -inset-0.5 bg-gradient-to-r ${currentPrompt.color} rounded-2xl blur opacity-0 group-hover:opacity-30 transition-all duration-500 animate-gradient`}
+          />
+
+          {/* Main Container */}
+          <div
+            className={`relative bg-white border-2 rounded-2xl transition-all duration-500 ${
+              isFocused
+                ? 'border-black shadow-2xl shadow-black/20 scale-[1.02]'
+                : isHovered
+                ? 'border-gray-400 shadow-xl'
+                : 'border-gray-200 shadow-lg'
+            }`}
+          >
+            {/* Input Area */}
+            <div className="flex items-center px-8 py-6">
+              {/* Terminal Symbol with Animation */}
+              <div className="flex items-center gap-4 mr-6">
+                <span
+                  className={`text-3xl font-mono font-bold transition-all duration-300 ${
+                    isFocused
+                      ? 'text-black scale-125 animate-pulse-subtle'
+                      : 'text-gray-400'
+                  }`}
+                >
+                  ›
+                </span>
+              </div>
+
+              {/* Input Overlay */}
+              <div className="flex-1 relative">
+                {/* Typewriter Display (shows when not focused) */}
+                {!isFocused && !manualInput && (
+                  <div className="absolute inset-0 flex items-center pointer-events-none">
+                    <span className="text-xl font-mono text-gray-900">
+                      {state.displayText}
+                      <span
+                        className={`inline-block w-0.5 h-6 bg-black ml-1 transition-opacity duration-100 ${
+                          showCursor ? 'opacity-100' : 'opacity-0'
+                        }`}
+                      />
+                    </span>
+                  </div>
+                )}
+
+                {/* Actual Input (hidden until focused) */}
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={manualInput}
+                  onChange={(e) => setManualInput(e.target.value)}
+                  onFocus={handleFocus}
+                  onBlur={handleBlur}
+                  className={`w-full text-xl font-mono bg-transparent border-none outline-none text-gray-900 transition-opacity ${
+                    isFocused || manualInput ? 'opacity-100' : 'opacity-0'
+                  }`}
+                  placeholder="Type your command..."
+                  autoComplete="off"
+                  spellCheck="false"
+                />
+              </div>
+
+              {/* Keyboard Shortcut Badge */}
+              <div
+                className={`hidden md:flex items-center gap-2 ml-6 px-4 py-2 rounded-lg border-2 transition-all duration-300 ${
+                  isFocused
+                    ? 'bg-black text-white border-black'
+                    : 'bg-gray-50 text-gray-600 border-gray-200'
+                }`}
+              >
+                <span className="text-sm font-semibold">
+                  {navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'}
+                </span>
+                <span className="text-sm font-semibold">K</span>
+              </div>
+
+              {/* Submit Button (shows on input) */}
+              {manualInput && (
+                <button
+                  type="submit"
+                  className="ml-6 px-8 py-3 bg-black text-white rounded-xl font-semibold hover:bg-gray-800 transition-all hover:scale-105 active:scale-95 flex items-center gap-3 shadow-lg animate-slideInRight"
+                >
+                  <span>Analyze</span>
+                  <span className="text-xl">→</span>
+                </button>
+              )}
+            </div>
+
+            {/* Bottom Info Bar */}
+            <div
+              className={`flex items-center justify-between px-8 py-4 border-t transition-all ${
+                isFocused ? 'border-gray-300 bg-gray-50' : 'border-gray-100 bg-white'
+              }`}
+            >
+              {/* Current Category Badge */}
+              <div className="flex items-center gap-3">
+                <span className="text-2xl animate-bounce-subtle">
+                  {currentPrompt.icon}
+                </span>
+                <span className="text-sm font-medium text-gray-600">
+                  {currentPrompt.category}
+                </span>
+              </div>
+
+              {/* Features */}
+              <div className="flex items-center gap-6 text-sm text-gray-500">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                  <span className="font-medium">AI-powered</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span>⚡</span>
+                  <span className="font-medium">30 sec analysis</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span>🎁</span>
+                  <span className="font-medium">Free</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Floating Action Hint */}
+          {!isFocused && !isHovered && (
+            <div className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 text-sm text-gray-400 animate-fade-in-up flex items-center gap-2">
+              <span>Click to try your own command</span>
+              <span className="animate-bounce">👇</span>
+            </div>
+          )}
+        </div>
+      </form>
+
+      {/* Quick Start Examples (show when focused) */}
+      {isFocused && (
+        <div className="mt-6 p-6 bg-white border border-gray-200 rounded-xl shadow-lg animate-slide-up">
+          <div className="text-sm font-semibold text-gray-700 mb-4">
+            💡 Try these commands:
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {EPIC_PROMPTS.slice(0, 4).map((prompt, index) => (
+              <button
+                key={index}
+                type="button"
+                onClick={() => {
+                  setManualInput(prompt.text);
+                  inputRef.current?.focus();
+                }}
+                className="flex items-center gap-3 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-all text-left group hover:scale-[1.02]"
+              >
+                <span className="text-xl">{prompt.icon}</span>
+                <span className="text-sm text-gray-700 group-hover:text-gray-900 font-mono">
+                  {prompt.text.slice(0, 35)}...
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+🎨 REQUIRED ANIMATIONS & STYLES
+Add these to your CSS or Tailwind config:
+css/* Gradient animation for border */
+@keyframes gradient {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient 3s ease infinite;
+}
+
+/* Subtle pulse */
+@keyframes pulse-subtle {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 2s ease-in-out infinite;
+}
+
+/* Bounce subtle */
+@keyframes bounce-subtle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.animate-bounce-subtle {
+  animation: bounce-subtle 2s ease-in-out infinite;
+}
+
+/* Slide in right */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slideInRight {
+  animation: slideInRight 0.3s ease-out forwards;
+}
+
+/* Fade in up */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s ease-out forwards;
+}
+
+/* Slide up */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.4s ease-out forwards;
+}
+
+/* Typing cursor blink */
+@keyframes blink {
+  0%, 49% {
+    opacity: 1;
+  }
+  50%, 100% {
+    opacity: 0;
+  }
+}
+
+.animate-blink {
+  animation: blink 1s step-end infinite;
+}
+
+🔗 INTEGRATION INTO HERO SECTION
+typescriptimport React from 'react';
+import { SelfTypingCommandBar } from './components/SelfTypingCommandBar';
+
+export const HeroSection: React.FC = () => {
+  const handleAnalysis = (query: string) => {
+    console.log('Analyzing:', query);
+    // Your analysis logic here
+    // Could parse the query and route appropriately
+  };
+
+  return (
+    <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-b from-white via-gray-50 to-white">
+      {/* Background Effects */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob" />
+        <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-purple-100 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000" />
+        <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-pink-100 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000" />
+      </div>
+
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 py-20">
+        {/* Headline */}
+        <div className="text-center mb-16 animate-fade-in-up">
+          <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold text-gray-900 mb-6 leading-tight">
+            Increase your visibility
+            <br />
+            <span className="relative inline-block mt-2">
+              <span className="bg-gradient-to-r from-black via-gray-800 to-black bg-clip-text text-transparent">
+                across AI platforms
+              </span>
+              <div className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full" />
+            </span>
+          </h1>
+          
+          <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            Discover how ChatGPT, Claude, Gemini, and Perplexity perceive your brand.
+            <br />
+            <span className="font-semibold text-gray-900">
+              Get actionable insights in 30 seconds.
+            </span>
+          </p>
+        </div>
+
+        {/* 🎯 SELF-TYPING COMMAND BAR */}
+        <div className="mb-16">
+          <SelfTypingCommandBar onManualSubmit={handleAnalysis} />
+        </div>
+
+        {/* Trust Indicators */}
+        <div className="flex flex-wrap justify-center items-center gap-8 text-sm text-gray-600">
+          <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-gray-200">
+            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+            <span className="font-medium">500+ analyses run</span>
+          </div>
+          <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-gray-200">
+            <span className="text-lg">📈</span>
+            <span className="font-semibold text-gray-900">89%</span>
+            <span className="font-medium">avg improvement</span>
+          </div>
+          <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-gray-200">
+            <span className="text-lg">🤖</span>
+            <span className="font-semibold text-gray-900">4</span>
+            <span className="font-medium">AI platforms</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+⚡ EVEN MORE CRAZY ENHANCEMENTS
+1. Sound Effects (Optional but Epic)
+typescript// Add subtle typing sounds
+const playTypeSound = () => {
+  const audio = new Audio('/sounds/keystroke.mp3');
+  audio.volume = 0.1;
+  audio.play().catch(() => {});
+};
+
+// In typing effect
+if (state.isTyping) {
+  playTypeSound();
+  setState(/* ... */);
+}
+2. Particle Effects on Hover
+typescriptimport Particles from 'react-particles';
+
+<Particles
+  options={{
+    particles: {
+      number: { value: 30 },
+      color: { value: '#000000' },
+      opacity: { value: 0.1 },
+      size: { value: 2 },
+      move: {
+        enable: true,
+        speed: 1,
+      },
+    },
+  }}
+/>
+3. Holographic Effect
+css.holographic-text {
+  background: linear-gradient(
+    45deg,
+    #ff0000,
+    #ff7300,
+    #fffb00,
+    #48ff00,
+    #00ffd5,
+    #002bff,
+    #7a00ff,
+    #ff00c8,
+    #ff0000
+  );
+  background-size: 400%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: holographic 10s linear infinite;
+}
+
+@keyframes holographic {
+  to {
+    background-position: 400%;
+  }
+}
+4. Matrix Rain Effect on Background
+typescript// Canvas-based matrix effect
+useEffect(() => {
+  const canvas = canvasRef.current;
+  const ctx = canvas.getContext('2d');
+  // Matrix rain animation code
+}, []);
+5. Command History Visualization
+typescriptconst [recentCommands, setRecentCommands] = useState<string[]>([]);
+
+// Show recent commands as floating pills
+<div className="absolute top-full mt-4 flex gap-2 animate-fade-in">
+  {recentCommands.slice(-3).map((cmd, i) => (
+    <div key={i} className="px-3 py-1 bg-gray-100 rounded-full text-xs opacity-50">
+      {cmd}
+    </div>
+  ))}
+</div>
+
+🎯 MOBILE OPTIMIZATION
+typescript// Mobile-specific version with simplified animations
+const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
+{isMobile ? (
+  <div className="relative bg-white border-2 border-gray-200 rounded-xl shadow-lg">
+    <div className="flex items-center px-4 py-4">
+      <span className="text-xl mr-3 text-gray-400">›</span>
+      <div className="flex-1 text-base font-mono text-gray-900">
+        {state.displayText}
+        <span className={`inline-block w-0.5 h-5 bg-black ml-1 ${showCursor ? 'opacity-100' : 'opacity-0'}`} />
+      </div>
+    </div>
+    <div className="px-4 pb-3 text-xs text-gray-500">
+      Tap to enter your command
+    </div>
+  </div>
+) : (
+  <SelfTypingCommandBar onManualSubmit={handleAnalysis} />
+)}
+
+✅ FINAL CHECKLIST
+
+ Create SelfTypingCommandBar component
+ Implement typewriter logic with precise timing
+ Add smooth character-by-character typing
+ Implement auto-delete functionality
+ Add cursor blink animation
+ Cycle through all prompts smoothly
+ Pause animations on hover
+ Pause animations on focus
+ Allow manual input override
+ Add keyboard shortcuts (⌘K)
+ Implement gradient border glow
+ Add category badges with icons
+ Create trust indicators bar
+ Add quick examples on focus
+ Test typing speeds for readability
+ Ensure smooth transitions
+ Mobile responsive design
+ Cross-browser testing
+ Performance optimization
+ Add accessibility features
+
+
+🚀 THE RESULT
+When you implement this, users will:
+
+Stop scrolling immediately - mesmerized by the typing effect
+Watch the full cycle - curious to see what comes next
+Feel compelled to interact - want to try their own commands
+Remember your product - this is a signature interaction
+Share it - "You have to see this landing page!"
+
+This isn't just a command bar. It's a show. It's entertainment. It's unforgettable.
+
+Copy this masterpiece to Replit Agent and prepare to have the most captivating, viral-worthy, screenshot-worthy command bar on the entire internet. This will be the element that makes GeoPulse LEGENDARY. 🔥🚀✨
