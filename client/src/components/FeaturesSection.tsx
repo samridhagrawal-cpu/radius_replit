@@ -214,7 +214,7 @@ export const FeaturesSection = () => {
   ];
 
   return (
-    <section className="w-full bg-background py-20 md:py-32 pt-[50px] pb-[50px]" data-testid="section-features">
+    <section className="w-full bg-background py-20 md:py-32 pt-[0px] pb-[0px]" data-testid="section-features">
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-16 md:mb-20 animate-fade-in-up">
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-4 leading-tight">

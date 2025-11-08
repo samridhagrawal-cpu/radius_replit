@@ -73,7 +73,7 @@ export default function HeroSection({ onAnalyze, isLoading, onTimelineComplete }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6 bg-white pt-[0px] pb-[0px]">
+    <div className="min-h-screen flex items-center justify-center pt-20 pb-16 px-6 bg-white">
       <div className="max-w-4xl mx-auto text-center space-y-8">
         <h1 className="md:text-6xl lg:text-7xl font-black tracking-tight text-black text-[75px]">
           Increase your visibility
