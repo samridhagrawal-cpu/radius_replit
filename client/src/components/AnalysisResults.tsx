@@ -84,10 +84,9 @@ export default function AnalysisResults({ data }: AnalysisResultsProps) {
         </div>
         {pdfReportData && <PDFReport data={pdfReportData} />}
       </div>
-
       {/* Liquid Glass Tab Navigation */}
       <div className="mb-12">
-        <div className="flex items-center gap-2 p-1.5 bg-card/90 backdrop-blur-xl border border-border rounded-full shadow-lg overflow-x-auto flex-wrap">
+        <div className="flex items-center gap-2 p-1.5 bg-card/90 backdrop-blur-xl border border-border rounded-full shadow-lg overflow-x-auto flex-wrap text-justify">
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -112,7 +111,6 @@ export default function AnalysisResults({ data }: AnalysisResultsProps) {
           ))}
         </div>
       </div>
-
       {/* Tab Content */}
       {activeTab === "overview" && (
         <div className="space-y-8" data-testid="content-overview">
@@ -211,7 +209,6 @@ export default function AnalysisResults({ data }: AnalysisResultsProps) {
           </div>
         </div>
       )}
-
       {activeTab === "recommendations" && (
         <div className="space-y-6" data-testid="content-recommendations">
           <h2 className="text-2xl font-bold">AI-Generated Recommendations</h2>
@@ -230,14 +227,12 @@ export default function AnalysisResults({ data }: AnalysisResultsProps) {
           </div>
         </div>
       )}
-
       {activeTab === "score-breakdown" && (
         <div className="space-y-6" data-testid="content-score-breakdown">
           <h2 className="text-2xl font-bold">Dimension Analysis</h2>
           <ScoreBreakdown data={dimensionScores} />
         </div>
       )}
-
       {activeTab === "competitors" && (
         <div className="space-y-6" data-testid="content-competitors">
           <h2 className="text-2xl font-bold">Competitor Rankings</h2>
@@ -261,13 +256,11 @@ export default function AnalysisResults({ data }: AnalysisResultsProps) {
           </div>
         </div>
       )}
-
       {activeTab === "methodology" && (
         <div className="space-y-6" data-testid="content-methodology">
           <CalculationMethodology />
         </div>
       )}
-
       {activeTab === "discovery" && (
         <div className="space-y-6" data-testid="content-discovery">
           <CompetitorDiscovery />
@@ -279,7 +272,6 @@ export default function AnalysisResults({ data }: AnalysisResultsProps) {
           )}
         </div>
       )}
-
       {activeTab === "accuracy" && (
         <div className="space-y-6" data-testid="content-accuracy">
           {accuracyChecks && accuracyChecks.length > 0 ? (
@@ -291,7 +283,6 @@ export default function AnalysisResults({ data }: AnalysisResultsProps) {
           )}
         </div>
       )}
-
       {activeTab === "missing-elements" && (
         <div className="space-y-6" data-testid="content-missing-elements">
           <h2 className="text-2xl font-bold">Missing Elements Detected</h2>
