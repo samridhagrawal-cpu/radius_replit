@@ -1,0 +1,304 @@
+// Type definitions for GeoPulse GEO Analysis System
+
+export interface GEOScore {
+  factor: 'AIC' | 'CES' | 'MTS';
+  score_0_to_10: number;
+  confidence_0_to_1: number;
+  sub_scores: {
+    s1: number;
+    s2: number;
+    s3: number;
+    s4: number;
+    s5: number;
+  };
+  top_strengths: string[];
+  top_gaps: string[];
+  evidence_snippets: EvidenceSnippet[];
+  recommended_actions: RecommendedAction[];
+  inferred_intents?: string[];
+  inferred_entities?: string[];
+  red_flags?: string[];
+}
+
+export interface EvidenceSnippet {
+  quote: string;
+  location: {
+    path: string;
+    start_ix?: number;
+    end_ix?: number;
+  };
+}
+
+export interface RecommendedAction {
+  action: string;
+  why_it_matters: string;
+  est_impact_high_med_low: 'high' | 'med' | 'low';
+  effort_low_med_high: 'low' | 'med' | 'high';
+  owner_hint: string;
+}
+
+export interface SynthesisResult {
+  inputs: {
+    weights: {
+      AIC: number;
+      CES: number;
+      MTS: number;
+    };
+    target_intents?: string[];
+    target_entities?: string[];
+  };
+  factor_summaries: {
+    AIC: {
+      score: number;
+      key_takeaway: string;
+    };
+    CES: {
+      score: number;
+      key_takeaway: string;
+    };
+    MTS: {
+      score: number;
+      key_takeaway: string;
+    };
+  };
+  final_weighted_score_0_to_10: number;
+  quick_wins: QuickWin[];
+  strategic_bets: StrategicBet[];
+  risk_notes?: string[];
+  proposed_experiments?: Experiment[];
+}
+
+export interface QuickWin {
+  title: string;
+  description: string;
+  impact: 'high';
+  effort: 'low';
+  owner: string;
+  expected_outcome?: string;
+}
+
+export interface StrategicBet {
+  title: string;
+  description: string;
+  impact: 'high';
+  effort: 'med' | 'high';
+  owner: string;
+  timeline?: string;
+  expected_outcome?: string;
+}
+
+export interface Experiment {
+  hypothesis: string;
+  test_method: string;
+  success_metrics: string[];
+  duration?: string;
+}
+
+export interface PlatformScore {
+  platform: 'ChatGPT' | 'Claude' | 'Gemini' | 'Perplexity' | 'SearchGPT' | 'Bing';
+  aic_score: number;
+  ces_score: number;
+  mts_score: number;
+  overall_score: number;
+  analysis: string;
+  strengths: string[];
+  weaknesses: string[];
+}
+
+export interface CompetitorAnalysis {
+  name: string;
+  url: string;
+  discovery_score: number;
+  comparison_score: number;
+  utility_score: number;
+  overall_geo_score: number;
+  mention_frequency: number;
+  citation_rate: number;
+  head_to_head_wins: number;
+  key_differentiators: string[];
+}
+
+export interface AccuracyCheck {
+  platform: 'ChatGPT' | 'Claude' | 'Gemini' | 'Perplexity' | 'SearchGPT' | 'Bing';
+  test_queries: TestQuery[];
+  overall_accuracy: number; // 0-100
+  hallucinations: Hallucination[];
+  missing_info: string[];
+  correct_facts: string[];
+}
+
+export interface TestQuery {
+  query: string;
+  expected_facts: string[];
+  actual_response: string;
+  accuracy_score: number;
+  is_critical: boolean;
+}
+
+export interface Hallucination {
+  claim: string;
+  reason: string;
+  severity: 'high' | 'medium' | 'low';
+}
+
+export interface MetricDefinition {
+  code: string;
+  title: string;
+  description: string;
+  weight?: number;
+  calculation_method: string;
+  scoring_anchors: {
+    range: string;
+    label: string;
+    description: string;
+  }[];
+  examples?: {
+    score: number;
+    description: string;
+  }[];
+}
+
+export interface SubMetricDefinition {
+  code: string;
+  name: string;
+  description: string;
+  calculation: string;
+  importance: string;
+}
+
+export interface CompetitorDiscoveryStep {
+  step: number;
+  title: string;
+  description: string;
+  method: string;
+  icon: string;
+  technical_details?: string;
+}
+
+export interface ConsumerQuestion {
+  category: 'Discovery' | 'Comparison' | 'Utility';
+  weight: number;
+  questions: string[];
+  metric: string;
+  why_it_matters: string;
+}
+
+export interface ComparisonDimension {
+  name: string;
+  weight: number;
+  description: string;
+  metrics: string[];
+  calculation_formula?: string;
+}
+
+export interface ReportData {
+  websiteUrl: string;
+  domain: string;
+  generatedAt: Date;
+  overallScore: number;
+  aic: number;
+  ces: number;
+  mts: number;
+  executiveSummary: string;
+  platforms: PlatformScore[];
+  competitors: CompetitorAnalysis[];
+  quickWins: QuickWin[];
+  strategicBets: StrategicBet[];
+  accuracyChecks: AccuracyCheck[];
+  experiments?: Experiment[];
+  riskNotes?: string[];
+}
+
+export interface ReportOptions {
+  includeCompetitors: boolean;
+  detailLevel: 'executive' | 'detailed' | 'technical';
+  platforms: string[];
+  exportFormat: 'pdf' | 'docx' | 'html' | 'json';
+  branding?: {
+    includeLogo: boolean;
+    customColors: boolean;
+    whiteLabel: boolean;
+  };
+}
+
+export interface InfoButtonProps {
+  metric: string;
+  definition: MetricDefinition | SubMetricDefinition;
+  position?: 'top' | 'bottom' | 'left' | 'right';
+}
+
+export interface OpenInAIProps {
+  platform: 'ChatGPT' | 'Claude' | 'Perplexity' | 'Gemini';
+  query: string;
+  context?: {
+    brandName: string;
+    industry: string;
+    purpose?: string;
+  };
+}
+
+export interface ScoreCardProps {
+  score: number;
+  maxScore: number;
+  label: string;
+  sublabel?: string;
+  showInfoButton?: boolean;
+  metricDefinition?: MetricDefinition;
+}
+
+export interface CompetitorMatrixProps {
+  userBrand: CompetitorAnalysis;
+  competitors: CompetitorAnalysis[];
+  highlightDimensions?: ('discovery' | 'comparison' | 'utility')[];
+}
+
+export interface AccuracyIndicatorProps {
+  accuracy: number;
+  platform: string;
+  details: AccuracyCheck;
+}
+
+// Utility type for score ranges
+export type ScoreRange = '0-2' | '2-4' | '4-6' | '6-8' | '8-10';
+
+export const SCORE_LABELS: Record<ScoreRange, string> = {
+  '0-2': 'Critical',
+  '2-4': 'Weak',
+  '4-6': 'Adequate',
+  '6-8': 'Strong',
+  '8-10': 'Outstanding'
+};
+
+// Helper function to get score label
+export function getScoreLabel(score: number): string {
+  if (score >= 0 && score < 2) return SCORE_LABELS['0-2'];
+  if (score >= 2 && score < 4) return SCORE_LABELS['2-4'];
+  if (score >= 4 && score < 6) return SCORE_LABELS['4-6'];
+  if (score >= 6 && score < 8) return SCORE_LABELS['6-8'];
+  if (score >= 8 && score <= 10) return SCORE_LABELS['8-10'];
+  return 'Unknown';
+}
+
+// Helper function to calculate weighted score
+export function calculateWeightedScore(
+  aic: number,
+  ces: number,
+  mts: number,
+  weights = { AIC: 0.40, CES: 0.35, MTS: 0.25 }
+): number {
+  return Number(
+    (aic * weights.AIC + ces * weights.CES + mts * weights.MTS).toFixed(1)
+  );
+}
+
+// Helper function to calculate sub-score average
+export function calculateFactorScore(subScores: {
+  s1: number;
+  s2: number;
+  s3: number;
+  s4: number;
+  s5: number;
+}): number {
+  const { s1, s2, s3, s4, s5 } = subScores;
+  return Math.round((s1 + s2 + s3 + s4 + s5) / 5);
+}
