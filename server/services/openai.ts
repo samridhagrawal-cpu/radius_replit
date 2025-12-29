@@ -1,8 +1,18 @@
 import OpenAI from 'openai';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+let openai: OpenAI | null = null;
+
+function getOpenAIClient(): OpenAI {
+  if (!openai) {
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error('OPENAI_API_KEY environment variable is not set. AI features will not work.');
+    }
+    openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+  }
+  return openai;
+}
 
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
@@ -23,7 +33,8 @@ export async function chat(messages: ChatMessage[], options: {
   } = options;
 
   try {
-    const completion = await openai.chat.completions.create({
+    const client = getOpenAIClient();
+    const completion = await client.chat.completions.create({
       model,
       messages,
       temperature,
@@ -44,11 +55,11 @@ export async function analyzeWithGPT(prompt: string, options?: {
   temperature?: number;
 }): Promise<string> {
   const messages: ChatMessage[] = [];
-  
+
   if (options?.systemPrompt) {
     messages.push({ role: 'system', content: options.systemPrompt });
   }
-  
+
   messages.push({ role: 'user', content: prompt });
 
   return chat(messages, {
@@ -56,3 +67,4 @@ export async function analyzeWithGPT(prompt: string, options?: {
     temperature: options?.temperature,
   });
 }
+
